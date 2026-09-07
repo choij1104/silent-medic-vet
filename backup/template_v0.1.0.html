@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<meta name="theme-color" content="#1B2A24">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SILENT MEDIC VET">
+<meta name="description" content="Offline veterinary decision support for owners and veterinarians. Six treatment tiers — OTC to manual therapy — graded by evidence, species safety, withdrawal, and regulatory status. No network calls.">
+<title>SILENT MEDIC VET __VERSION__ — Offline Veterinary Decision Support</title>
+<style>
+:root{
+  --bg:#F3F5F0; --surface:#FFFFFF; --ink:#1B2A24; --ink-2:#4F5E57; --line:#D6DCD6; --line-2:#E9EDE8;
+  --accent:#2F4FA8; --accent-ink:#FFFFFF; --band:#B42318;
+  --ok:#1E7F4F; --caution:#B7791F; --no:#B42318; --grey:#7A7A7A;
+  --r:6px; --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--font)}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--accent)}
+h1,h2,h3,h4{margin:0;font-weight:600;line-height:1.25}
+p{margin:0 0 .6em}
+.sr{position:absolute;left:-9999px}
+
+/* boot */
+#boot{position:fixed;inset:0;background:var(--ink);color:#E6ECE8;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:50;padding:24px;text-align:center}
+#boot h1{font-size:26px;letter-spacing:.02em}
+#boot h1 small{display:block;font-size:13px;font-weight:400;color:#9FB0A8;margin-top:6px}
+#bootLog{font-size:13px;color:#B9C6BF;margin-top:22px;min-height:120px;width:min(420px,100%);text-align:left}
+#bootLog div{padding:2px 0}
+#bootLog .ok{color:#7FD1A4}#bootLog .warn{color:#F0C36A}#bootLog .err{color:#F28B82}
+#bootBarWrap{width:min(420px,100%);height:4px;background:#2E3D36;border-radius:2px;margin-top:12px;overflow:hidden}
+#bootBar{height:100%;width:0;background:#7FD1A4;transition:width .25s}
+#bootBtn{margin-top:26px;background:#F3F5F0;color:var(--ink);border:0;border-radius:var(--r);padding:12px 22px;font-weight:600;font-size:15px;display:none}
+#bootBtn:focus-visible{outline:3px solid #7FD1A4;outline-offset:2px}
+
+/* header */
+header{position:sticky;top:0;z-index:20;background:var(--ink);color:#E6ECE8;padding:10px 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header .brand{font-weight:600;font-size:16px;letter-spacing:.01em}
+header .brand small{font-weight:400;color:#9FB0A8;margin-left:8px;font-size:12px}
+.modeSwitch{margin-left:auto;display:flex;border:1px solid #4A5C53;border-radius:var(--r);overflow:hidden}
+.modeSwitch button{background:transparent;color:#C9D4CE;border:0;padding:6px 14px;font-weight:600;font-size:13px}
+.modeSwitch button[aria-pressed="true"]{background:#F3F5F0;color:var(--ink)}
+.modeSwitch button:focus-visible{outline:2px solid #7FD1A4;outline-offset:-2px}
+
+/* species rail — the one memorable element */
+.rail{background:var(--surface);border-bottom:1px solid var(--line);padding:10px 14px 12px;position:sticky;top:50px;z-index:19}
+.railRow{display:flex;gap:18px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px}
+.railRow::-webkit-scrollbar{display:none}
+.group{display:flex;flex-direction:column;gap:6px;flex:none}
+.group h4{font-size:11px;font-weight:600;color:var(--ink-2);letter-spacing:.02em}
+.group .chips{display:flex;gap:6px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 13px;font-size:14px;line-height:1;white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.chip.food::after{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--caution);margin-left:7px;vertical-align:middle}
+.railMeta{display:flex;align-items:center;gap:10px;margin-top:8px;font-size:13px;color:var(--ink-2);flex-wrap:wrap}
+.railMeta label{display:flex;align-items:center;gap:6px}
+.railMeta input{width:78px;padding:6px 8px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+.foodNote{color:var(--caution)}
+.foodNote::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--caution);margin-right:6px}
+
+/* tabs */
+.tabs{display:flex;border-bottom:1px solid var(--line);background:var(--bg);padding:0 14px}
+.tabs button{background:transparent;border:0;border-bottom:3px solid transparent;padding:12px 14px 10px;font-weight:600;color:var(--ink-2)}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink)}
+.tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.panel{display:none;padding:14px}
+.panel.active{display:block}
+
+/* search + tiers */
+.search{display:flex;gap:8px}
+.search input{flex:1;padding:11px 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);font-size:16px}
+.search input:focus-visible{outline:2px solid var(--accent)}
+.tierRow{display:flex;gap:6px;margin:10px 0 4px;flex-wrap:wrap}
+.tier{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:6px 10px;font-size:13px;line-height:1.2}
+.tier[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tier:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.hint{font-size:13px;color:var(--ink-2);margin:6px 0 10px}
+
+/* results */
+.results{display:flex;flex-direction:column;gap:10px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.card>.head{width:100%;text-align:left;background:transparent;border:0;padding:12px 14px;display:flex;gap:10px;align-items:flex-start}
+.card>.head:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.card .name{font-weight:600;font-size:16px}
+.card .sub{font-size:13px;color:var(--ink-2);margin-top:2px}
+.badges{display:flex;gap:6px;flex:none;align-items:center;flex-wrap:wrap;justify-content:flex-end;max-width:46%}
+.b{font-size:11.5px;font-weight:600;border-radius:4px;padding:3px 7px;line-height:1.2;white-space:nowrap}
+.b.tier{background:var(--line-2);color:var(--ink);border:0;padding:3px 7px}
+.b.ev{color:#fff}
+.b.ev.A{background:var(--ok)}.b.ev.B{background:var(--accent)}.b.ev.C{background:var(--caution)}.b.ev.D{background:var(--grey)}.b.ev.X{background:var(--no)}
+.b.st{border:1px solid currentColor;background:transparent}
+.b.st.ok{color:var(--ok)}.b.st.caution{color:var(--caution)}.b.st.no{color:var(--no)}
+.b.rx{background:#EEF1FB;color:var(--accent)}.b.rx.otc{background:#E7F4EC;color:var(--ok)}.b.rx.unapproved{background:#FBE9E7;color:var(--no)}.b.rx.supp{background:#F6F0E4;color:#7A5A12}.b.rx.proc{background:var(--line-2);color:var(--ink-2)}
+.band{background:var(--band);color:#fff;font-weight:600;padding:8px 14px;font-size:14px}
+.body{display:none;padding:0 14px 14px;border-top:1px solid var(--line-2)}
+.card.open .body{display:block}
+.body h4{font-size:13px;color:var(--ink-2);margin:14px 0 4px;font-weight:600}
+.body h4:first-child{margin-top:12px}
+.body p,.body li{font-size:14.5px}
+.body ul{margin:0;padding-left:18px}
+.spline{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:14px;margin-top:4px}
+.spline .k{color:var(--ink-2)}
+.dose{background:#F6F8F4;border-left:3px solid var(--accent);padding:8px 10px;border-radius:0 var(--r) var(--r) 0;margin:6px 0;font-size:14px}
+.dose.rxonly{border-left-color:var(--caution);background:#FBF7EE}
+.warnline{color:var(--no);font-weight:600}
+.callout{border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;margin-top:10px;font-size:14px;background:#FAFBF8}
+.callout.red{border-color:var(--no);background:#FDF3F2}
+.callout.red strong{color:var(--no)}
+.refs{font-size:13px;color:var(--ink-2)}
+.empty{padding:28px 10px;text-align:center;color:var(--ink-2)}
+
+/* decision support */
+.ds fieldset{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:10px 12px 12px;margin:0 0 10px}
+.ds legend{font-weight:600;font-size:14px;padding:0 4px}
+.opts{display:flex;flex-wrap:wrap;gap:6px}
+.opt{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:8px 11px;font-size:14px;line-height:1.2}
+.opt[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.opt:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.primary{width:100%;background:var(--accent);color:#fff;border:0;border-radius:var(--r);padding:14px;font-weight:600;font-size:16px;margin-top:4px}
+.primary:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.plan{margin-top:14px}
+.plan section{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:10px}
+.plan h3{font-size:15px;margin-bottom:6px}
+.plan section.red{border-color:var(--no)}
+.plan section.red h3{color:var(--no)}
+.plan section.dvm{border-color:var(--accent)}
+.plan section.dvm h3{color:var(--accent)}
+.plan ol,.plan ul{margin:0;padding-left:20px}
+.plan li{margin:3px 0;font-size:14.5px}
+.plan li.link{cursor:pointer;color:var(--accent);text-decoration:underline}
+.plan .note{font-size:13px;color:var(--ink-2);margin-top:8px}
+.copyRow{display:flex;gap:8px;margin-top:6px}
+.copyRow button{flex:1;border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:10px;font-weight:600}
+
+footer{padding:18px 14px 34px;font-size:12.5px;color:var(--ink-2);border-top:1px solid var(--line);margin-top:20px}
+footer p{margin-bottom:6px}
+
+@media (min-width:900px){
+  .panel.active#refPanel{display:grid;grid-template-columns:380px 1fr;gap:16px;align-items:start}
+  #refPanel .left{position:sticky;top:150px}
+  .results{max-height:calc(100vh - 220px);overflow:auto}
+  .badges{max-width:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div id="boot" role="status" aria-live="polite">
+  <h1>SILENT MEDIC VET<small>Offline veterinary decision support · __VERSION__</small></h1>
+  <div id="bootLog"></div>
+  <div id="bootBarWrap"><div id="bootBar"></div></div>
+  <button id="bootBtn" type="button">Open</button>
+</div>
+
+<header>
+  <div class="brand">SILENT MEDIC VET<small>__VERSION__</small></div>
+  <div class="modeSwitch" role="group" aria-label="User mode">
+    <button type="button" id="modeOwner" aria-pressed="true">Owner</button>
+    <button type="button" id="modeDvm" aria-pressed="false">Veterinarian</button>
+  </div>
+</header>
+
+<div class="rail">
+  <div class="railRow" id="railRow" role="group" aria-label="Species"></div>
+  <div class="railMeta">
+    <label>Weight <input type="number" id="weight" min="0.05" step="0.1" inputmode="decimal" placeholder="kg"> kg</label>
+    <span id="foodNote" class="foodNote" hidden>Food-producing species — withdrawal times apply</span>
+  </div>
+</div>
+
+<div class="tabs" role="tablist">
+  <button role="tab" id="tabRef" aria-selected="true" aria-controls="refPanel">Reference</button>
+  <button role="tab" id="tabDs" aria-selected="false" aria-controls="dsPanel">Decision support</button>
+</div>
+
+<div class="panel active" id="refPanel" role="tabpanel">
+  <div class="left">
+    <div class="search">
+      <input type="search" id="q" placeholder="Drug, supplement, problem… e.g. lameness, mites, Librela" aria-label="Search">
+    </div>
+    <div class="tierRow" id="tierRow" role="group" aria-label="Treatment tiers"></div>
+    <p class="hint" id="hint"></p>
+  </div>
+  <div class="results" id="results"></div>
+</div>
+
+<div class="panel ds" id="dsPanel" role="tabpanel">
+  <fieldset><legend>Problem</legend><div class="opts" id="dsSyn"></div></fieldset>
+  <fieldset><legend>Started</legend><div class="opts" id="dsOnset"></div></fieldset>
+  <fieldset><legend>What you have</legend><div class="opts" id="dsRes"></div></fieldset>
+  <button type="button" class="primary" id="dsGo">Build plan</button>
+  <div class="plan" id="plan"></div>
+</div>
+
+<footer>
+  <p><strong>SILENT MEDIC VET __VERSION__</strong> · build __BUILD__ · knowledge base __KBCOUNT__ entries across 6 treatment tiers · 13 species.</p>
+  <p>All inference is local. No data leaves this device. Doses shown in Veterinarian mode are reference values from published formularies and labels; verify against current labels, Plumb's, and FARAD before use. Extra-label use in food animals requires a valid VCPR and a FARAD-derived withdrawal.</p>
+  <p>Unapproved peptides (Tier 3C) are summarized for reference only and are not recommended by this tool.</p>
+  <p>© 2026 Jae H. Choi, MSc, PhD, DVSc · Auravyx Systems · Prototype — not a substitute for a licensed veterinarian.</p>
+</footer>
+
+<script id="kbData" type="application/octet-stream">__KBDATA__</script>
+<script>
+'use strict';
+const APP_VERSION='__VERSION__';
+const KB_EXPECTED_SHA256='__KBSHA__';
+const SPECIES={
+  dog:{l:'Dog',g:'Companion'},cat:{l:'Cat',g:'Companion'},rabbit:{l:'Rabbit',g:'Companion'},
+  horse:{l:'Horse',g:'Equine'},
+  cattle:{l:'Cattle',g:'Ruminant',food:1},sheep:{l:'Sheep',g:'Ruminant',food:1},goat:{l:'Goat',g:'Ruminant',food:1},deer:{l:'Deer',g:'Ruminant',food:1},
+  pig:{l:'Pig',g:'Swine',food:1},
+  chicken:{l:'Chicken',g:'Poultry',food:1},duck:{l:'Duck',g:'Poultry',food:1},turkey:{l:'Turkey',g:'Poultry',food:1},peafowl:{l:'Peafowl',g:'Poultry',food:1}
+};
+const TIERS={1:'OTC drug',2:'Rx drug',3:'Peptide / biologic',4:'Nutraceutical',5:'Herbal / TCVM',6:'Manual / physical'};
+const RX={otc:'OTC',rx:'Rx',unapproved:'Not approved',supp:'Supplement',proc:'Procedure'};
+const EVL={A:'Strong evidence in this species',B:'Some controlled data or label approval',C:'Extrapolated or anecdotal',D:'Traditional or marketed — no controlled data',X:'Evidence of harm'};
+const state={kb:[],mode:'owner',species:'dog',weight:null,tiers:new Set([1,2,3,4,5,6]),q:'',ds:{syn:null,onset:null,res:new Set()}};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+/* ---------- boot ---------- */
+function log(m,c='info'){const d=document.createElement('div');d.className=c;d.textContent=m;$('bootLog').appendChild(d);while($('bootLog').children.length>6)$('bootLog').removeChild($('bootLog').firstChild)}
+async function decompressKB(){
+  const b64=$('kbData').textContent.trim();const bin=atob(b64);const bytes=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+  const text=await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+  const h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text));
+  state.kbHash=[...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('');
+  state.kbOk=state.kbHash===KB_EXPECTED_SHA256;
+  return JSON.parse(text);
+}
+async function boot(){
+  log('Starting');await sleep(120);$('bootBar').style.width='15%';
+  log(navigator.onLine?'Network present — not used':'Offline — local mode','ok');await sleep(100);$('bootBar').style.width='35%';
+  log('Decompressing knowledge base');
+  try{state.kb=await decompressKB();log('Loaded '+state.kb.length+' entries','ok');log(state.kbOk?'Integrity verified (SHA-256)':'Integrity check failed — data may be altered',state.kbOk?'ok':'warn')}
+  catch(e){log('Knowledge base error: '+e.message,'err')}
+  $('bootBar').style.width='80%';await sleep(120);
+  buildRail();buildTiers();buildDS();render();
+  $('bootBar').style.width='100%';log('Ready','ok');
+  const b=$('bootBtn');b.style.display='inline-block';b.onclick=()=>{$('boot').remove();$('q').focus()};b.focus();
+}
+
+/* ---------- rail ---------- */
+function buildRail(){
+  const groups={};for(const [k,v] of Object.entries(SPECIES)){(groups[v.g]=groups[v.g]||[]).push(k)}
+  const row=$('railRow');row.innerHTML='';
+  for(const [g,ks] of Object.entries(groups)){
+    const d=document.createElement('div');d.className='group';d.innerHTML='<h4>'+g+'</h4>';
+    const c=document.createElement('div');c.className='chips';
+    for(const k of ks){const b=document.createElement('button');b.type='button';b.className='chip'+(SPECIES[k].food?' food':'');b.textContent=SPECIES[k].l;b.setAttribute('aria-pressed',k===state.species);b.onclick=()=>{state.species=k;buildRail();render();renderPlan()};c.appendChild(b)}
+    d.appendChild(c);row.appendChild(d);
+  }
+  $('foodNote').hidden=!SPECIES[state.species].food;
+}
+$('weight').addEventListener('input',e=>{state.weight=parseFloat(e.target.value)||null;render()});
+$('modeOwner').onclick=()=>setMode('owner');$('modeDvm').onclick=()=>setMode('dvm');
+function setMode(m){state.mode=m;$('modeOwner').setAttribute('aria-pressed',m==='owner');$('modeDvm').setAttribute('aria-pressed',m==='dvm');render();renderPlan()}
+$('tabRef').onclick=()=>tab('ref');$('tabDs').onclick=()=>tab('ds');
+function tab(t){$('tabRef').setAttribute('aria-selected',t==='ref');$('tabDs').setAttribute('aria-selected',t==='ds');$('refPanel').classList.toggle('active',t==='ref');$('dsPanel').classList.toggle('active',t==='ds')}
+
+/* ---------- reference ---------- */
+function buildTiers(){
+  const r=$('tierRow');r.innerHTML='';
+  for(const [n,l] of Object.entries(TIERS)){const b=document.createElement('button');b.type='button';b.className='tier';b.textContent=n+' · '+l;b.setAttribute('aria-pressed','true');
+    b.onclick=()=>{const t=+n;if(state.tiers.has(t)&&state.tiers.size>1)state.tiers.delete(t);else state.tiers.add(t);b.setAttribute('aria-pressed',state.tiers.has(t));render()};r.appendChild(b)}
+}
+$('q').addEventListener('input',e=>{state.q=e.target.value.trim().toLowerCase();render()});
+function score(e,q){
+  if(!q)return 1;const hay=[e.n,...(e.a||[]),...(e.ind||[]),e.cls,e.evn,e.owner].join(' ').toLowerCase();
+  const toks=q.split(/\s+/).filter(Boolean);let s=0;
+  for(const t of toks){if(e.n.toLowerCase().startsWith(t))s+=6;else if(e.n.toLowerCase().includes(t))s+=4;else if((e.a||[]).some(a=>a.toLowerCase().includes(t)))s+=3;else if((e.ind||[]).some(a=>a.toLowerCase().includes(t)))s+=3;else if(hay.includes(t))s+=1;else return 0}
+  return s;
+}
+function render(){
+  const sp=state.species;const isDvm=state.mode==='dvm';
+  let list=state.kb.filter(e=>state.tiers.has(e.tier)).map(e=>({e,s:score(e,state.q)})).filter(x=>x.s>0);
+  // owner mode: hide Rx-only dosing is handled in card; owner mode still lists Rx so they know it exists
+  list.sort((a,b)=>b.s-a.s||a.e.tier-b.e.tier||a.e.n.localeCompare(b.e.n));
+  const st=s=>((s.e.sp||{})[sp]||{}).s||'caution';
+  $('hint').textContent=list.length+' entries for '+SPECIES[sp].l+(state.weight?' · '+state.weight+' kg':'')+' · '+(isDvm?'Veterinarian view':'Owner view');
+  const R=$('results');R.innerHTML='';
+  if(!list.length){R.innerHTML='<div class="empty">No matches. Try a symptom (lameness, diarrhea, mites) or a drug name.</div>';return}
+  for(const {e} of list)R.appendChild(card(e,sp,isDvm));
+}
+function card(e,sp,isDvm){
+  const s=(e.sp||{})[sp]||{s:'caution',n:'No species data.'};
+  const d=document.createElement('article');d.className='card';d.dataset.id=e.i;
+  const isC3=e.sub==='3C';
+  let h='';
+  if(isC3)h+='<div class="band">Not approved — any species. Reference only.</div>';
+  h+='<button class="head" type="button" aria-expanded="false"><div style="flex:1;min-width:0"><div class="name">'+esc(e.n)+'</div><div class="sub">'+esc(e.cls)+(e.a&&e.a.length?' · '+esc(e.a.slice(0,2).join(', ')):'')+'</div></div>'
+    +'<div class="badges"><span class="b tier">'+e.tier+(e.sub?e.sub.slice(1):'')+'</span><span class="b rx '+e.rx+'">'+RX[e.rx]+'</span><span class="b ev '+e.ev+'" title="'+esc(EVL[e.ev])+'">Evidence '+e.ev+'</span><span class="b st '+s.s+'">'+SPECIES[sp].l+': '+({ok:'ok',caution:'caution',no:'do not use'}[s.s])+'</span></div></button>';
+  let b='<div class="body">';
+  b+='<h4>What it is</h4><p>'+esc(e.owner)+'</p>';
+  b+='<h4>Evidence · '+e.ev+' — '+esc(EVL[e.ev])+'</h4><p>'+esc(e.evn)+'</p>';
+  if(isC3){
+    b+='<h4>Status</h4><p>'+esc(e.reg)+'</p><p><span class="warnline">Competition:</span> '+esc(e.comp)+'</p><p><span class="warnline">Food animals:</span> prohibited — no withdrawal data.</p>';
+    b+='<h4>Investigational rationale (reference only — not a recommendation)</h4><p><em>Proposed mechanism:</em> '+esc(e.mech)+'</p><ul>'+(e.hyp||[]).map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>';
+    b+='<div class="callout red"><strong>Owner:</strong> do not self-administer. Discuss with your veterinarian.</div>';
+    if(isDvm)b+='<h4>DVM note</h4><p>'+esc(e.dvm)+'</p>';
+  }else{
+    b+='<h4>For '+esc(SPECIES[sp].l)+'</h4>';
+    b+='<div class="spline"><span class="k">Status</span><span class="b st '+s.s+'" style="justify-self:start">'+({ok:'Acceptable',caution:'Caution / extra-label',no:'Do not use'}[s.s])+'</span>';
+    if(s.n)b+='<span class="k">Note</span><span>'+esc(s.n)+'</span>';
+    if(SPECIES[sp].food&&s.w)b+='<span class="k">Withdrawal</span><span'+(/prohib|undefined|farad/i.test(s.w)?' class="warnline"':'')+'>'+esc(s.w)+'</span>';
+    if(sp==='horse'&&e.comp)b+='<span class="k">Competition</span><span>'+esc(e.comp)+'</span>';
+    b+='</div>';
+    if(s.d){
+      if(isDvm)b+='<div class="dose'+(e.rx==='rx'?' rxonly':'')+'"><strong>Dose (reference):</strong> '+esc(s.d)+(state.weight?calc(s.d,state.weight):'')+'</div>';
+      else if(e.rx==='otc'||e.rx==='supp'||e.rx==='proc')b+='<div class="dose"><strong>Typical use:</strong> '+esc(s.d)+'</div>';
+      else b+='<div class="dose rxonly">Prescription — dosing is set by your veterinarian.</div>';
+    }
+    if(isDvm&&e.dvm)b+='<h4>DVM note</h4><p>'+esc(e.dvm)+'</p>';
+    if(e.reg)b+='<h4>Regulatory</h4><p>'+esc(e.reg)+'</p>';
+    if(e.refs&&e.refs.length)b+='<h4>References</h4><p class="refs">'+e.refs.map(esc).join('<br>')+'</p>';
+  }
+  if(e.rf)b+='<div class="callout red"><strong>Call a veterinarian now if:</strong> '+esc(e.rf)+'</div>';
+  b+='</div>';
+  d.innerHTML=h+b;
+  const head=d.querySelector('.head');head.onclick=()=>{const o=d.classList.toggle('open');head.setAttribute('aria-expanded',o)};
+  return d;
+}
+function calc(d,w){
+  // pull "X mg/kg" or "X-Y mg/kg" (also mcg, U, mL, g) and compute for weight; informational only
+  const m=d.match(/(\d+(?:\.\d+)?)(?:\s*-\s*(\d+(?:\.\d+)?))?\s*(mg|mcg|g|IU|U|mL)\/kg/i);if(!m)return '';
+  const u=m[3];const lo=(+m[1]*w),hi=m[2]?(+m[2]*w):null;const f=x=>x>=100?Math.round(x):x>=10?x.toFixed(1):x.toFixed(2);
+  return ' <span style="color:var(--ink-2)">→ at '+w+' kg: '+f(lo)+(hi?'–'+f(hi):'')+' '+u+' per dose (informational)</span>';
+}
+
+/* ---------- decision support ---------- */
+const SYN=[
+ {k:'wound',l:'Wound / injury'},{k:'lame',l:'Lameness / joint / muscle'},{k:'gi',l:'Vomiting / diarrhea'},{k:'colic',l:'Colic / bloat / not eating',g:['Equine','Ruminant','Companion']},
+ {k:'tox',l:'Ate something toxic'},{k:'resp',l:'Breathing / cough'},{k:'skin',l:'Skin / itch / parasites'},{k:'repro',l:'Birth / egg binding'},{k:'heat',l:'Heat stress'},{k:'urin',l:'Straining to urinate',g:['Companion','Ruminant']},{k:'neuro',l:'Wobbly / seizure / collapse'}];
+const ONSET=[{k:'now',l:'Under 1 hour'},{k:'today',l:'Today'},{k:'days',l:'Days'},{k:'chronic',l:'Weeks or longer'}];
+const RES=[{k:'home',l:'Household items'},{k:'feed',l:'Feed-store products'},{k:'kit',l:'First-aid kit'},{k:'rx',l:'Rx drugs on hand (from your vet)'},{k:'clinic',l:'Clinic'}];
+function buildDS(){
+  opts('dsSyn',SYN,k=>{state.ds.syn=k});opts('dsOnset',ONSET,k=>{state.ds.onset=k});
+  const r=$('dsRes');r.innerHTML='';for(const o of RES){const b=document.createElement('button');b.type='button';b.className='opt';b.textContent=o.l;b.setAttribute('aria-pressed','false');b.onclick=()=>{if(state.ds.res.has(o.k))state.ds.res.delete(o.k);else state.ds.res.add(o.k);b.setAttribute('aria-pressed',state.ds.res.has(o.k))};r.appendChild(b)}
+  $('dsGo').onclick=renderPlan;
+}
+function opts(id,arr,cb){const r=$(id);r.innerHTML='';for(const o of arr){const b=document.createElement('button');b.type='button';b.className='opt';b.textContent=o.l;b.setAttribute('aria-pressed','false');b.onclick=()=>{[...r.children].forEach(x=>x.setAttribute('aria-pressed','false'));b.setAttribute('aria-pressed','true');cb(o.k)};r.appendChild(b)}}
+const G=k=>SPECIES[k].g;
+const FOOD=k=>!!SPECIES[k].food;
+function kbn(...names){return names.map(n=>state.kb.find(e=>e.n.toLowerCase().startsWith(n.toLowerCase()))).filter(Boolean)}
+
+function rules(sp,syn,onset){
+  const g=G(sp),food=FOOD(sp);const P={do:[],dont:[],otc:[],red:[],rx:[],note:[]};
+  const add=(k,...x)=>P[k].push(...x);
+  const isDog=sp==='dog',isCat=sp==='cat',isRab=sp==='rabbit',isHorse=sp==='horse',isBird=g==='Poultry',isRum=g==='Ruminant';
+  switch(syn){
+  case 'wound':
+    add('do','Control bleeding: firm direct pressure with clean cloth 5-10 min — do not peek.','Flush with saline or clean water, generously.','Clip or trim hair away if possible; cover with a clean non-stick dressing.',isHorse?'Keep the horse still; check tetanus vaccination status.':isBird?'Isolate the bird — flock-mates will peck at blood.':'Prevent licking (collar or cover).');
+    add('dont','No hydrogen peroxide, alcohol, or full-strength iodine in the wound.','No human ointments with lidocaine/benzocaine in cats.',isBird?'No gentian violet (Blu-Kote) on birds you may eat — federally prohibited.':'No tight tourniquets.');
+    add('otc','Saline wound lavage','Chlorhexidine (dilute)','Calendula / aloe / honey (topical)');
+    add('red','Bleeding that soaks through in 5 min','Puncture or bite wound (infection is near-certain)','Wound over a joint, tendon, or the eye','Anything you can see fat, bone, or tendon in',isHorse?'Wound on the lower leg near a joint — synovial infection risk':'Foul odor, pus, or spreading redness by day 2');
+    add('rx','Amoxicillin / amoxicillin-clavulanate',isHorse?'Phenylbutazone':isBird?'Meloxicam':'Meloxicam','Gabapentin');
+    if(food)add('note','Food animal: any antibiotic requires Rx and withdrawal; honey and chlorhexidine carry none.');
+    if(isRab)add('note','Rabbits: never oral penicillins or amoxicillin — fatal enterotoxemia.');
+    break;
+  case 'lame':
+    add('do',isHorse?'Cold hose or ice the limb 15-20 min, 3-4×/day for the first 48-72 h.':'Cold pack (wrapped) 10-15 min, 3-4×/day for the first 48-72 h.','Restrict to controlled, short movement — not total confinement, not free running.',isHorse?'Check the hoof: heat, digital pulse, nail, abscess; pick and inspect the sole.':'Check pads, nails, between toes for a foreign body or cut.','Compare the limb to the opposite side for heat and swelling.');
+    add('dont','No ibuprofen, naproxen, or acetaminophen — ever.',isHorse?'Do not give bute or Banamine from another horse’s supply without calling — masking colic-like pain or laminitis is dangerous.':'No aspirin in cats; no leftover NSAIDs from another animal.','Do not "walk it off."');
+    add('otc','Cold therapy (cold hosing, icing, cryotherapy)','Weight management','Controlled exercise / rehabilitation',isHorse?'Farriery / hoof balance':'Omega-3 fatty acids (EPA/DHA)');
+    if(onset==='chronic')add('otc','Omega-3 fatty acids (EPA/DHA)','Green-lipped mussel (Perna canaliculus)','Undenatured type II collagen (UC-II)',isHorse?'Oral hyaluronic acid / resveratrol (equine)':'Cannabidiol (CBD)');
+    add('red','Cannot bear weight on the limb','Obvious deformity, crepitus, or a limb hanging wrong',isHorse?'Both front feet hot with bounding pulses, rocked-back stance — laminitis, emergency':'Sudden hind-limb collapse (cats: check for cold, painful legs — clot)','Swollen, hot joint with fever','Lameness in a growing animal that lasts >24 h');
+    add('rx',isHorse?'Phenylbutazone':isCat?'Frunevetmab':isDog?'Carprofen':'Meloxicam',isDog?'Bedinvetmab':'Meloxicam',isDog?'Grapiprant':'Gabapentin','Gabapentin','Omeprazole');
+    if(isHorse)add('note','Competition horses: bute, flunixin, devil’s claw, CBD, and all Tier 3C peptides are prohibited or controlled — check FEI/USEF lists before anything is given.');
+    if(isBird)add('note','Birds: check feet for bumblefoot (black scab on pad), leg-band constriction, and perch injuries; splay leg in chicks is a housing problem.');
+    add('note','Peptide therapies: only Librela (dog) and Solensia (cat) are approved. BPC-157 / TB-500 have no controlled data in any animal and are competition-banned — see Tier 3C cards.');
+    break;
+  case 'gi':
+    add('do','Withhold food 6-12 h (adults only — NOT rabbits, foals, calves, or chicks), water available.','Then small bland meals (boiled chicken and rice for dogs; plain diet for cats).','Oral electrolytes, small amounts often.','Note color and frequency; photograph stool for the vet.');
+    add('dont',isCat?'No hydrogen peroxide, no acetaminophen, no Pepto-Bismol (salicylate) in cats.':'No loperamide in herding breeds (MDR1) or in cats.',isRab?'Rabbits must keep eating — do not fast; get hay in front of them.':'No milk or fatty foods.','No human anti-diarrheals in food animals without a vet.');
+    add('otc','Oral electrolytes / rehydration','Probiotics',isDog||isCat?'Famotidine':'Fenbendazole');
+    if(isBird)add('otc','Amprolium');
+    add('red','Blood in vomit or stool (red or black tar)','Vomiting or diarrhea >24 h, or >3 episodes in an hour','Puppy/kitten/chick/foal/calf — dehydrates in hours','Swollen, painful, or hard belly',isDog?'Unproductive retching in a deep-chested dog — bloat (GDV), minutes matter':'Lethargy with pale gums');
+    add('rx','Metronidazole','Amoxicillin / amoxicillin-clavulanate','Omeprazole','Fenbendazole');
+    if(food)add('note','Food animal: metronidazole is federally prohibited — fenbendazole for Giardia, amprolium for coccidia are the legal options.');
+    break;
+  case 'colic':
+    if(isHorse){add('do','Remove feed; allow water.','Walk slowly only if the horse is trying to roll and it is safe; otherwise let it rest.','Note gut sounds, gum color, manure passed, heart rate if you can.','Call the vet before any drug — record the time.');
+      add('dont','Do not give Banamine and then wait to see — it masks the signs the vet needs.','No mineral oil by mouth from a syringe (aspiration).');
+      add('red','Pain not controlled by one dose of flunixin, or returning within 4-6 h','Heart rate >60','Dark red or purple gums','Rolling violently, sweating, distended belly','Reflux/fluid from the nose');
+      add('rx','Flunixin meglumine','Omeprazole');add('note','Colic that fails one flunixin dose is surgical until proven otherwise.');}
+    else if(isRum){add('do','Distinguish frothy bloat (grain/legume) from free-gas bloat.','Keep the animal standing and walking; keep the head up.','Free-gas bloat: pass a stomach tube if trained; frothy bloat needs an anti-foaming agent (poloxalene or vegetable oil as an emergency measure).');
+      add('dont','Do not puncture the rumen without training — only as a last resort for imminent death.','No mineral oil down the throat without a tube (aspiration pneumonia).');
+      add('red','Left flank distended above the spine with open-mouth breathing — trocarize or die within minutes','Down and unable to rise','Repeated bloat episodes');
+      add('rx','Flunixin meglumine','Meloxicam');add('note','Goats and sheep off feed for 12-24 h: also consider pregnancy toxemia, listeriosis, polioencephalomalacia — all need a vet the same day.');}
+    else if(isRab){add('do','This is GI stasis until proven otherwise — an emergency in rabbits.','Offer hay, fresh greens, and water; syringe-feed critical-care formula if trained.','Gentle belly massage; keep warm; keep moving.');
+      add('dont','No fasting. No oral penicillins.','Do not wait overnight.');
+      add('red','No droppings for 8-12 h','Not eating for 12 h','Bloated, hard belly, hunched posture, teeth grinding');
+      add('rx','Meloxicam','Metronidazole');}
+    else{add('do','Withhold food 6-12 h; water available.','Check gums, belly, temperature.');add('dont','No human medications.');add('red','Retching without producing anything (dogs — bloat)','Hard, painful belly','Collapse');add('rx','Famotidine','Omeprazole');}
+    break;
+  case 'tox':
+    add('do','Call ASPCA Animal Poison Control 888-426-4435 or Pet Poison Helpline 855-764-7661 FIRST — have the package in hand.','Note what, how much, and when.','Rinse skin/eyes with water if topical (permethrin on a cat: bathe in lukewarm water with dish soap).');
+    add('dont',isDog?'Do not induce vomiting unless told to; never for caustics, petroleum, sharp objects, or a drowsy dog.':'Do not induce vomiting — '+SPECIES[sp].l+(isCat?'s: hydrogen peroxide is dangerous':'s cannot vomit')+'.','No milk, no salt, no "home remedies."');
+    add('otc','Hydrogen peroxide 3% (emesis induction)','Activated charcoal');
+    add('red','Any rodenticide, antifreeze, lilies (cats), xylitol, grapes/raisins, chocolate (dogs), permethrin (cats), macadamia, onion/garlic, ibuprofen/acetaminophen','Tremors, seizures, wobbling, drooling, bleeding','Rapid breathing or collapse');
+    add('rx','Activated charcoal');
+    if(isBird)add('note','Birds: aerosolized Teflon (overheated non-stick pans), essential-oil diffusers, and lead/zinc hardware are the common flock toxins.');
+    if(isRum)add('note','Ruminants: grain overload, urea, oleander, Johnson grass (prussic acid), and lead from old batteries/paint. Meat/milk withdrawal applies after many exposures — record it.');
+    if(isHorse)add('note','Horses: red maple leaves, ionophores (cattle feed — monensin is lethal to horses), oleander, blister beetles in alfalfa.');
+    break;
+  case 'resp':
+    add('do','Count breaths at rest (normal: dog 15-30, cat 20-30, horse 8-16, cattle 12-36, chicken 12-37 /min).','Keep calm and cool; minimize handling.',isBird?'Isolate the bird; improve ventilation and reduce dust/ammonia in the coop.':'Check gum color.');
+    add('dont','No human cough medicines (many contain xylitol, acetaminophen, or dextromethorphan).','No essential-oil diffusers or vapor rubs — especially cats and birds.');
+    add('otc','Oral electrolytes / rehydration');
+    add('red','Open-mouth breathing in a cat (always an emergency)','Blue, grey, or pale gums','Breathing with belly effort, neck stretched out',isBird?'Gasping, tail-bobbing, or a bird that stops eating':'Choking or something lodged','Resting rate >40 (dog/cat) or >30 (horse)');
+    add('rx','Amoxicillin / amoxicillin-clavulanate','Enrofloxacin','Meloxicam');
+    if(isBird)add('note','Poultry respiratory disease (mycoplasma, infectious bronchitis, coryza) is flock disease; enrofloxacin is prohibited, tylosin/other antimicrobials are Rx. Report sudden multiple deaths (avian influenza surveillance).');
+    if(isRum)add('note','Cattle/small ruminants: BRD treatment is Rx with withdrawal; pneumonia in goats often bacterial + parasitic (lungworm — fenbendazole).');
+    break;
+  case 'skin':
+    add('do','Part the hair/feathers and look: fleas, flea dirt, mites at feather bases and vent, lice eggs on shafts, ticks.','Bathe with a mild shampoo; dry thoroughly.',isBird?'Treat the housing — red mites live in cracks and roosts, not on the bird.':'Check food changes, new products, and other animals in the house.');
+    add('dont','No permethrin or pyrethrin products on cats, ever.','No tea tree oil.','No garlic "for fleas."');
+    add('otc','Permethrin (poultry dust / spray)','Ivermectin','Diphenhydramine','Chlorhexidine (dilute)','Omega-3 fatty acids (EPA/DHA)');
+    add('red','Hives with facial swelling or breathing changes','Raw, oozing, spreading skin lesions','Self-mutilation','Skin turning black/leathery, foul odor',isBird?'Feather loss with weight loss or lethargy':'Hair loss in patterns (endocrine or mange)');
+    add('rx','Lokivetmab','Amoxicillin / amoxicillin-clavulanate','Enrofloxacin','Meloxicam');
+    if(isCat)add('note','Cats: a permethrin dog spot-on applied to a cat, or contact with a freshly treated dog, causes tremors and seizures — emergency bath and vet.');
+    break;
+  case 'repro':
+    if(isBird){add('do','Suspected egg-bound hen: warm (85-90 °F), humid, dark box for 1-2 h.','Offer calcium (liquid calcium gluconate or crushed Tums in water) and lubricate the vent with water-based lubricant.','Do not pull on a visible egg.');
+      add('dont','No oxytocin without a vet — a stuck egg plus contractions ruptures the oviduct.');add('otc','Oral electrolytes / rehydration');
+      add('red','Straining, tail-pumping, walking like a penguin for >2 h','Prolapsed vent (pink tissue outside) — cover with moist gauze, keep other birds away, vet today','Weak, fluffed, eyes closed');add('rx','Oxytocin','Deslorelin','Leuprolide');
+      add('note','Chronic layers: deslorelin implant is the practical Rx option for pet hens; not for hens whose eggs are eaten.');}
+    else{add('do','Time it: note when straining started and when the last offspring was delivered.','Warm, quiet space; minimal interference.',isHorse?'Foaling: the "1-2-3 rule" — foal standing by 1 h, nursing by 2 h, placenta passed by 3 h.':isRum?'Wash up; if you can feel the presentation and it is normal (two feet + nose), gentle traction with contractions only.':'Have the vet’s number ready before labor starts in first-time mothers and brachycephalic breeds.');
+      add('dont','No oxytocin unless a vet has ruled out obstruction.','No prolonged pulling on a stuck fetus.');
+      add('red',isHorse?'Red bag (red velvety membrane at the vulva) — cut it and deliver the foal now':'Active straining >30 min with no progress',isHorse?'No progress within 20-30 min of the water breaking':'>2 h between deliveries with more expected','Green/black discharge before the first delivery (dogs)','Retained placenta beyond '+(isHorse?'3 h':isRum?'24 h':'12 h'),'Mother collapsed, seizuring (eclampsia), or bleeding');
+      add('rx','Oxytocin');
+      if(isRum)add('note','Prolapse, ringwomb, or a dead fetus need a vet; milk fever (cows, ewes) and pregnancy toxemia (goats, ewes) present around birth — do not confuse with dystocia.');}
+    break;
+  case 'heat':
+    add('do','Move to shade or AC; fans on.','Cool water (not ice) on belly, groin, armpits'+(isHorse?', large muscle groups':'')+'; keep water moving over the skin.','Small amounts of water/electrolytes if alert.',isBird?'Shallow pans of cool water for feet; frozen bottles in the coop; open ventilation.':'Take a rectal temperature if you can and stop cooling at 103 °F (dog/cat) / 101.5 °F (horse).');
+    add('dont','No ice baths (vasoconstriction traps heat).','No forcing water into an unresponsive animal.');
+    add('otc','Oral electrolytes / rehydration','Cold therapy (cold hosing, icing, cryotherapy)');
+    add('red','Temperature >105 °F, or collapse','Bloody diarrhea or vomiting after heat','Seizures, disorientation',isBird?'Birds panting with wings out that stop responding':'Brachycephalic dogs — go now, they decompensate fast');
+    add('rx','Meloxicam');
+    if(isHorse)add('note','Anhidrosis (non-sweating) horses in Texas summers: manage with cooling and electrolytes; no approved drug.');
+    break;
+  case 'urin':
+    if(isCat)add('do','Male cat straining, crying, licking the penis, or visiting the box repeatedly with nothing: this is a blocked urethra until proven otherwise — emergency, go now.','Do not wait to see if it passes.');
+    else if(isRum)add('do','Male goats/sheep (especially wethers) straining, tail twitching, vocalizing: urinary calculi — emergency.','Withhold grain; call the vet now.');
+    else add('do','Note frequency, straining, blood, and volume.','Free access to water.');
+    add('dont','No cranberry or home remedies as a substitute for a vet visit.','No NSAIDs before hydration status is known.');
+    add('red','Male cat or wether unable to pass urine — bladder can rupture within 24-48 h','Blood in urine with pain or lethargy','No urine for 12 h','Vomiting with straining');
+    add('rx','Amoxicillin / amoxicillin-clavulanate','Enrofloxacin','Gabapentin');
+    if(isRum)add('note','Prevention: ammonium chloride in ration, 2:1 Ca:P, delayed castration, water access.');
+    break;
+  case 'neuro':
+    add('do','Protect from injury; dim, quiet space; time the episode.','Do not put hands near the mouth.','If diabetic on insulin and conscious enough to swallow: honey or syrup on the gums.','Check for toxin access (see toxin pathway).');
+    add('dont','No ice baths, no forcing objects into the mouth.','Do not drive with an unrestrained seizing animal loose in the car.');
+    add('red','Seizure >5 min, or two in a row without recovery','First-ever seizure','Collapse with pale gums or distended belly (internal bleeding)','Head tilt, circling, sudden blindness',isRum?'Ruminant "star-gazing", blindness, head-pressing — polio (PEM), listeriosis, or lead; vet today':isBird?'Birds: twisted neck (wry neck) in chicks — vitamin E/selenium deficiency vs Marek’s':'Weakness after ivermectin or a new flea product');
+    add('rx','Gabapentin','Insulin (veterinary)');
+    if(isDog)add('note','Herding breeds with sudden ataxia after any ivermectin/loperamide exposure: MDR1 toxicosis.');
+    break;
+  default: add('note','Select a problem.');
+  }
+  return P;
+}
+function renderPlan(){
+  const {syn,onset}=state.ds;const sp=state.species;const P=$('plan');
+  if(!syn){P.innerHTML='';return}
+  const r=rules(sp,syn,onset);const isDvm=state.mode==='dvm';const food=FOOD(sp);
+  const li=a=>a.map(x=>'<li>'+esc(x)+'</li>').join('');
+  const kbli=a=>kbn(...a).filter((e,i,arr)=>arr.indexOf(e)===i).map(e=>{const s=((e.sp||{})[sp]||{}).s||'caution';return s==='no'?'':'<li class="link" data-id="'+e.i+'">'+esc(e.n)+' <span class="b st '+s+'">'+({ok:'ok',caution:'caution'}[s])+'</span>'+(food&&e.sp[sp].w?' <span class="refs">withdrawal: '+esc(e.sp[sp].w)+'</span>':'')+'</li>'}).join('');
+  let h='<section class="red"><h3>Call a veterinarian now if</h3><ul>'+li(r.red)+'</ul></section>';
+  h+='<section><h3>Do now — '+esc(SPECIES[sp].l)+(state.weight?', '+state.weight+' kg':'')+'</h3><ol>'+li(r.do)+'</ol></section>';
+  h+='<section><h3>Do not</h3><ul>'+li(r.dont)+'</ul></section>';
+  const otc=kbli(r.otc);if(otc)h+='<section><h3>Without a prescription (tap to open)</h3><ul>'+otc+'</ul></section>';
+  if(isDvm){const rx=kbli(r.rx);if(rx)h+='<section class="dvm"><h3>Rx options — Veterinarian view</h3><ul>'+rx+'</ul>'+(food?'<p class="note">Food-producing species: extra-label use requires VCPR and FARAD withdrawal; see "Prohibited extra-label drugs" reference card.</p>':'')+'</section>'}
+  else h+='<section class="dvm"><h3>Prescription options exist</h3><p class="note">Your veterinarian has approved drugs for this problem'+(sp==='dog'||sp==='cat'?', including monthly antibody injections for arthritis':'')+'. Switch to Veterinarian view to see them listed.</p></section>';
+  if(r.note.length)h+='<section><h3>Notes</h3><ul>'+li(r.note)+'</ul></section>';
+  h+='<div class="copyRow"><button type="button" id="copyPlan">Copy plan</button></div><p class="note">Generated locally from the SILENT MEDIC VET rule base. Not a diagnosis.</p>';
+  P.innerHTML=h;
+  P.querySelectorAll('li.link').forEach(l=>l.onclick=()=>{tab('ref');state.q='';$('q').value='';state.tiers=new Set([1,2,3,4,5,6]);$('tierRow').querySelectorAll('.tier').forEach(b=>b.setAttribute('aria-pressed','true'));render();const c=$('results').querySelector('[data-id="'+l.dataset.id+'"]');if(c){c.classList.add('open');c.querySelector('.head').setAttribute('aria-expanded','true');c.scrollIntoView({block:'start'})}});
+  $('copyPlan').onclick=()=>{navigator.clipboard.writeText(P.innerText).then(()=>{$('copyPlan').textContent='Copied'}).catch(()=>{$('copyPlan').textContent='Copy failed'})};
+}
+boot();
+</script>
+</body>
+</html>
