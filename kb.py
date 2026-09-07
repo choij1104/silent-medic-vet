@@ -523,4 +523,21 @@ add(n="Prohibited extra-label drugs in food animals (21 CFR 530.41)",a=["AMDUCA 
  dvm="PROHIBITED extra-label in food animals: chloramphenicol; clenbuterol; diethylstilbestrol; dimetridazole, ipronidazole, other nitroimidazoles (METRONIDAZOLE); furazolidone, nitrofurazone (topical included); fluoroquinolones (enrofloxacin — label indications only); glycopeptides (vancomycin); sulfonamides in lactating dairy cattle (except approved); phenylbutazone in female dairy cattle ≥20 mo; cephalosporins (extra-label restrictions in cattle, swine, chickens, turkeys); gentian violet; adamantanes and neuraminidase inhibitors (amantadine, oseltamivir) in chickens, turkeys, ducks. Horses: treated as food animals for slaughter export — 'not for food' declaration required on medical records for bute etc.",
  reg="21 CFR 530.41; GFI #263 (2023) moved all medically important antimicrobials to Rx.",rf="")
 
+# ───────── WITHDRAWAL COMPLETENESS RULE (v0.1.1) ─────────
+# Every food-animal cell that is not status "no" must carry a withdrawal string.
+# Cells that already have one are never overwritten. Rule, in order:
+#   procedures / physical therapies (rx="proc")            -> "n/a — no drug administered"
+#   topical irrigant / antiseptic (cls contains "irrigant"/"antiseptic") -> "None established (topical); FARAD if systemic exposure"
+#   dose text says "per label"                              -> "Per label"
+#   everything else (no label withdrawal recorded here)     -> "FARAD"
+_TOPICAL=("irrigant","antiseptic")
+for e in KB:
+    for _s in FOOD:
+        c=e["sp"].get(_s)
+        if c is None or c.get("s")=="no" or c.get("w"): continue
+        if e["rx"]=="proc": c["w"]="n/a — no drug administered"
+        elif any(t in e["cls"].lower() for t in _TOPICAL): c["w"]="None established (topical); FARAD if systemic exposure"
+        elif "per label" in c.get("d","").lower(): c["w"]="Per label"
+        else: c["w"]="FARAD"
+
 for i,e in enumerate(KB,1): e["i"]=i
