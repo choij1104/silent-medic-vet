@@ -1,4 +1,11 @@
 <!DOCTYPE html>
+<!--
+SILENT MEDIC VET — version history
+v0.1.2  2026-09-14  Touch targets: chips, tier filters, mode switch, decision-support options, weight input raised to 44 px min-height.
+v0.1.2  2026-09-07  8 prescribing/dispensing reference cards (VCPR, Rx elements, dispensed label, AMDUCA, controlled substances, GFI #256 compounding, VFD/GFI #263, Rx portability). KB 64 -> 72.
+v0.1.1  2026-09-07  Withdrawal completeness rule: 211 food-animal cells filled (FARAD / per label / n-a). No dose changes.
+v0.1.0  2026-09-06  Initial seed: 64 entries, 13 species, 6 tiers, 11 problem flows, SHA-256 KB integrity.
+-->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -42,7 +49,7 @@ header{position:sticky;top:0;z-index:20;background:var(--ink);color:#E6ECE8;padd
 header .brand{font-weight:600;font-size:16px;letter-spacing:.01em}
 header .brand small{font-weight:400;color:#9FB0A8;margin-left:8px;font-size:12px}
 .modeSwitch{margin-left:auto;display:flex;border:1px solid #4A5C53;border-radius:var(--r);overflow:hidden}
-.modeSwitch button{background:transparent;color:#C9D4CE;border:0;padding:6px 14px;font-weight:600;font-size:13px}
+.modeSwitch button{background:transparent;color:#C9D4CE;border:0;padding:6px 14px;font-weight:600;font-size:13px;min-height:44px}
 .modeSwitch button[aria-pressed="true"]{background:#F3F5F0;color:var(--ink)}
 .modeSwitch button:focus-visible{outline:2px solid #7FD1A4;outline-offset:-2px}
 
@@ -53,7 +60,7 @@ header .brand small{font-weight:400;color:#9FB0A8;margin-left:8px;font-size:12px
 .group{display:flex;flex-direction:column;gap:6px;flex:none}
 .group h4{font-size:11px;font-weight:600;color:var(--ink-2);letter-spacing:.02em}
 .group .chips{display:flex;gap:6px}
-.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 13px;font-size:14px;line-height:1;white-space:nowrap}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 13px;font-size:14px;line-height:1;white-space:nowrap;min-height:44px}
 .chip[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
 .chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .chip.food::after{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--caution);margin-left:7px;vertical-align:middle}
@@ -76,7 +83,7 @@ header .brand small{font-weight:400;color:#9FB0A8;margin-left:8px;font-size:12px
 .search input{flex:1;padding:11px 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);font-size:16px}
 .search input:focus-visible{outline:2px solid var(--accent)}
 .tierRow{display:flex;gap:6px;margin:10px 0 4px;flex-wrap:wrap}
-.tier{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:6px 10px;font-size:13px;line-height:1.2}
+.tier{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:6px 10px;font-size:13px;line-height:1.2;min-height:44px}
 .tier[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .tier:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .hint{font-size:13px;color:var(--ink-2);margin:6px 0 10px}
@@ -118,7 +125,7 @@ header .brand small{font-weight:400;color:#9FB0A8;margin-left:8px;font-size:12px
 .ds fieldset{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:10px 12px 12px;margin:0 0 10px}
 .ds legend{font-weight:600;font-size:14px;padding:0 4px}
 .opts{display:flex;flex-wrap:wrap;gap:6px}
-.opt{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:8px 11px;font-size:14px;line-height:1.2}
+.opt{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:8px 11px;font-size:14px;line-height:1.2;min-height:44px}
 .opt[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
 .opt:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .primary{width:100%;background:var(--accent);color:#fff;border:0;border-radius:var(--r);padding:14px;font-weight:600;font-size:16px;margin-top:4px}
@@ -169,7 +176,7 @@ footer p{margin-bottom:6px}
 <div class="rail">
   <div class="railRow" id="railRow" role="group" aria-label="Species"></div>
   <div class="railMeta">
-    <label>Weight <input type="number" id="weight" min="0.05" step="0.1" inputmode="decimal" placeholder="kg"> kg</label>
+    <label>Weight <input type="number" id="weight" min="0.05" step="0.1" inputmode="decimal" placeholder="kg" style="min-height:44px"> kg</label>
     <span id="foodNote" class="foodNote" hidden>Food-producing species — withdrawal times apply</span>
   </div>
 </div>
