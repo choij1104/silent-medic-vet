@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.1.5 — 2026-09-20
+- Acupuncture card: regulatory text updated to Texas 22 TAC 573.16 (2026 combined acupuncture/holistic/homeopathy rule: veterinarian only, conventional-treatment disclosure, signed owner acknowledgment); evidence note and 2 verified PMIDs (17867976, 20513202) added.
+- New DVM reference card: Alternate therapies — Texas law (573.14 manipulation; 573.16 acupuncture/holistic/homeopathy). KB 74 -> 75.
+
+## v0.1.4 — 2026-09-20
+- View presets: 'All' and 'Rehab & Manual Therapy' (dog and horse only, tiers 4 and 6 preselected, note on Texas 22 TAC 573.14). Deep link `#view=rehab`. Additive — every species and tier remains available under 'All'.
+
 ## v0.1.3 — 2026-09-20
 - Tier 6: Osteopathic manipulative treatment (OMT) — dog and horse (evidence C, 4 PMIDs) and Physical therapy / veterinary rehabilitation — dog and horse (evidence B, 4 PMIDs). Texas 22 TAC 573.14 alternate-therapy acknowledgment noted. Other species marked outside scope. Existing chiropractic/osteopathic and controlled-exercise cards unchanged.
 - Knowledge base 72 -> 74 entries.

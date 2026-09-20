@@ -6,6 +6,7 @@ Offline veterinary decision support for owners and veterinarians. Single-file PW
 **Modes:** Owner (OTC/supplement/first aid, red flags, "Rx exists") · Veterinarian (mg/kg reference doses, AMDUCA/withdrawal, DVM notes)
 **Treatment tiers:** 1 OTC drug · 2 Rx small molecule · 3 Peptide/biologic (3A approved veterinary · 3B human-approved extra-label · 3C unapproved/research — red band, reference only) · 4 Nutraceutical · 5 Herbal/TCVM · 6 Manual/physical
 **Prescribing reference (DVM, v0.1.2):** VCPR · prescription elements & refills · dispensed-drug label · AMDUCA extra-label conditions & records · controlled substances (DEA + Texas) · compounding (GFI #256) · VFD / GFI #263 · prescription portability & online pharmacies. Federal + Texas; substitute your state practice act.
+**Views:** All · Rehab & Manual Therapy (dog and horse, tiers 4+6; deep link `index.html#view=rehab`).
 **Evidence grades:** A strong in-species data · B some controlled data / label · C extrapolated/anecdotal · D traditional/marketed only · X evidence of harm
 
 ## Build

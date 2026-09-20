@@ -1,4 +1,4 @@
-# SILENT MEDIC VET — knowledge base v0.1.3
+# SILENT MEDIC VET — knowledge base v0.1.5
 # ev: A strong controlled data in target species | B some controlled data / label-approved | C extrapolated or anecdotal | D traditional, no controlled data | X evidence of harm
 # rx: otc | rx | unapproved | supp | proc
 # sp status s: ok | caution | no ; d = dose (DVM mode only) ; w = withdrawal ; n = note
@@ -626,6 +626,28 @@ add(n="Prescription portability and online pharmacies",a=["written prescription 
  owner="If you want to buy a prescribed drug elsewhere, your veterinarian should give you a written prescription instead of selling it to you, as long as they have a relationship with your animal. Use pharmacies accredited by the National Association of Boards of Pharmacy (.pharmacy domain) — counterfeit heartworm and flea products are common online.",
  dvm="Provide a written prescription in lieu of dispensing when the client asks and a VCPR exists; a fee for the exam is reasonable, a fee for writing the prescription is prohibited in some states. Whether a drug is included in the plan is the veterinarian's decision, not the pharmacy's: verify pharmacy refill requests against the record and decline them when the VCPR has lapsed, the drug is inappropriate, or the patient is due for monitoring (e.g., NSAID bloodwork, phenobarbital levels). Do not authorize a refill by fax from a pharmacy you did not choose without confirming the request is genuine. Legitimacy: NABP Pharmacy Verified Websites program (.pharmacy); avoid sites that sell Rx drugs without a prescription. Human pharmacies: warn about xylitol-containing liquids, and pharmacist substitutions (e.g., generic thyroid products, insulin type) that change veterinary dosing — write 'dispense as written' where it matters.",
  reg="AVMA Prescriptions and Pharmacies FAQ; state practice acts vary; NABP .pharmacy program.",rf="")
+
+# ───────── ALTERNATE THERAPY LAW (v0.1.5) ─────────
+# Texas 22 TAC 573.16 (acupuncture, holistic medicine, homeopathy — combined March 2026; 573.17 repealed) and 573.14 (musculoskeletal manipulation).
+# Verified against TBVME Chapter 573 PDF updated 2026-03-09 and LII text on 2026-09-20.
+_ACU_REG=("Texas 22 TAC 573.16 (2026): only a licensed veterinarian may perform acupuncture (needling, moxibustion, thermal or electrical point stimulation); "
+          "no delegation to non-veterinarians. Before treatment the veterinarian must inform the client of the conventional treatments available and their probable ability to cure the problem, "
+          "and obtain a signed owner statement acknowledging acupuncture is an alternate therapy; the statement is a permanent part of the record. Other states differ — check the state practice act.")
+_ACU_REFS=["Hayashi AM, Matera JM, Fonseca Pinto AC. J Am Vet Med Assoc. 2007;231(6):913-918. PMID 17867976",
+           "Joaquim JG, Luna SP, Brondani JT, et al. J Am Vet Med Assoc. 2010;236(11):1225-1229. PMID 20513202"]
+for _e in KB:
+    if _e["n"]=="Acupuncture":
+        _e["reg"]=_ACU_REG
+        _e["refs"]=(_e.get("refs") or [])+_ACU_REFS
+        _e["evn"]=_e["evn"]+" Canine IVDD: randomised trial (n=50) — electroacupuncture plus standard care shortened time to ambulation versus standard care alone; a controlled study (n=40) favoured electroacupuncture over late decompressive surgery in long-standing severe deficits."
+
+add(n="Alternate therapies — Texas law (acupuncture, holistic, homeopathy, manipulation)",a=["573.16","573.14","alternate therapy consent","CAVM","complementary","holistic medicine law","homeopathy law"],tier=2,cls="Prescribing reference",rx="rx",
+ ind=["acupuncture","holistic","homeopathy","chiropractic","manipulation","osteopathy","herbal","TCVM","consent form","alternate therapy","who can perform"],ev="A",
+ evn="Regulatory text: 22 TAC 573.14 and 573.16 (TBVME Chapter 573, updated 2026-03-09). AVMA policy treats complementary and alternative veterinary medicine as veterinary medicine subject to the same standards of evidence and the practice act.",
+ sp={k:{"s":"ok","n":"Reference card — applies to every species."} for k in ["dog","cat","rabbit","horse"]} | {k:{"s":"ok","n":"Reference card — applies to every species; herbal products in food animals still need a withdrawal (FARAD).","w":"n/a — reference card"} for k in FOOD},
+ owner="In Texas, acupuncture, holistic medicine and homeopathy on animals may only be done by a licensed veterinarian, who must first tell you what conventional treatments exist and how likely they are to work, and have you sign a form acknowledging the therapy is 'alternate'. Chiropractic and other spinal manipulation may be done by a non-veterinarian only under a veterinarian's supervision, with the same signed form. Anyone offering these without a veterinarian is practising illegally.",
+ dvm="573.16 (acupuncture, holistic medicine, homeopathy): veterinarian only, no delegation to staff or contractors; disclose conventional options and their probable ability to cure; signed owner acknowledgment kept permanently in the record. 'Holistic medicine' in the rule covers herbal medicine and homeopathy used alongside conventional care, so Tier 5 herbal/TCVM prescribing in Texas also carries the disclosure-and-acknowledgment duty. 573.14 (chiropractic and musculoskeletal manipulation): veterinarian with a VCPR, or a non-veterinarian employee/independent contractor under direct or general supervision; signed owner acknowledgment that MSM is an alternate therapy. Practical form: one acknowledgment covering the specific therapy, dated, listing the conventional options discussed. Evidence and liability: the alternate-therapy designation does not lower the standard of care — diagnosis, differential list and conventional-option discussion must be in the record. Other states: rules vary from veterinarian-only to layperson-permitted; the app's regulatory text is Texas-specific.",
+ reg="22 TAC 573.14; 22 TAC 573.16 (combined acupuncture/holistic/homeopathy rule, 573.17 repealed); AVMA Guidelines for Complementary and Alternative Veterinary Medicine.",rf="")
 
 # ───────── WITHDRAWAL COMPLETENESS RULE (v0.1.1) ─────────
 # Every food-animal cell that is not status "no" must carry a withdrawal string.

@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <!--
 SILENT MEDIC VET — version history
+v0.1.5  2026-09-20  Acupuncture card: Texas 573.16 (2026) regulatory text and 2 verified PMIDs; new DVM reference card 'Alternate therapies — Texas law'. KB 74 -> 75.
+v0.1.4  2026-09-20  Views: 'Rehab & Manual Therapy' preset (dog and horse, tiers 4+6, deep link #view=rehab). Additive; 'All' restores everything.
 v0.1.3  2026-09-20  Tier 6: osteopathic manipulative treatment (dog/horse) and physical therapy / rehabilitation (dog/horse) cards, 8 verified PMIDs. KB 72 -> 74.
 v0.1.2  2026-09-14  Touch targets: chips, tier filters, mode switch, decision-support options, weight input raised to 44 px min-height.
 v0.1.2  2026-09-07  8 prescribing/dispensing reference cards (VCPR, Rx elements, dispensed label, AMDUCA, controlled substances, GFI #256 compounding, VFD/GFI #263, Rx portability). KB 64 -> 72.
@@ -56,6 +58,11 @@ header .brand small{font-weight:400;color:#9FB0A8;margin-left:8px;font-size:12px
 
 /* species rail — the one memorable element */
 .rail{background:var(--surface);border-bottom:1px solid var(--line);padding:10px 14px 12px;position:sticky;top:50px;z-index:19}
+.viewRow{display:flex;gap:6px;margin:0 0 8px}
+.view{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:6px 14px;font-size:13px;font-weight:600;min-height:44px;min-width:44px}
+.view[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.view:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.viewNote{margin:0 0 8px;font-size:12px;color:var(--ink-2)}
 .railRow{display:flex;gap:18px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px}
 .railRow::-webkit-scrollbar{display:none}
 .group{display:flex;flex-direction:column;gap:6px;flex:none}
@@ -175,6 +182,8 @@ footer p{margin-bottom:6px}
 </header>
 
 <div class="rail">
+  <div class="viewRow" id="viewRow" role="group" aria-label="View"></div>
+  <p class="viewNote" id="viewNote" hidden></p>
   <div class="railRow" id="railRow" role="group" aria-label="Species"></div>
   <div class="railMeta">
     <label>Weight <input type="number" id="weight" min="0.05" step="0.1" inputmode="decimal" placeholder="kg" style="min-height:44px"> kg</label>
@@ -228,7 +237,9 @@ const SPECIES={
 const TIERS={1:'OTC drug',2:'Rx drug',3:'Peptide / biologic',4:'Nutraceutical',5:'Herbal / TCVM',6:'Manual / physical'};
 const RX={otc:'OTC',rx:'Rx',unapproved:'Not approved',supp:'Supplement',proc:'Procedure'};
 const EVL={A:'Strong evidence in this species',B:'Some controlled data or label approval',C:'Extrapolated or anecdotal',D:'Traditional or marketed — no controlled data',X:'Evidence of harm'};
-const state={kb:[],mode:'owner',species:'dog',weight:null,tiers:new Set([1,2,3,4,5,6]),q:'',ds:{syn:null,onset:null,res:new Set()}};
+const state={kb:[],mode:'owner',species:'dog',weight:null,tiers:new Set([1,2,3,4,5,6]),q:'',ds:{syn:null,onset:null,res:new Set()},view:'all'};
+/* Views are additive presets over the same KB: 'rehab' limits the species rail to dog and horse and preselects tiers 4 and 6. Nothing is removed from the KB; switching back to 'all' restores every species and tier. Deep link: #view=rehab */
+const VIEWS={all:{l:'All',sp:null,tiers:[1,2,3,4,5,6]},rehab:{l:'Rehab & Manual Therapy',sp:['dog','horse'],tiers:[4,6],note:'Dog and horse · rehabilitation, manual therapy and supportive nutraceuticals · evidence-graded · Texas 22 TAC 573.14 applies to manipulation'}};
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -251,14 +262,14 @@ async function boot(){
   try{state.kb=await decompressKB();log('Loaded '+state.kb.length+' entries','ok');log(state.kbOk?'Integrity verified (SHA-256)':'Integrity check failed — data may be altered',state.kbOk?'ok':'warn')}
   catch(e){log('Knowledge base error: '+e.message,'err')}
   $('bootBar').style.width='80%';await sleep(120);
-  buildRail();buildTiers();buildDS();render();
+  buildViews();const hv=(location.hash.match(/view=([a-z]+)/)||[])[1];if(hv&&VIEWS[hv]){setView(hv)}else{buildRail();buildTiers()}buildDS();render();
   $('bootBar').style.width='100%';log('Ready','ok');
   const b=$('bootBtn');b.style.display='inline-block';b.onclick=()=>{$('boot').remove();$('q').focus()};b.focus();
 }
 
 /* ---------- rail ---------- */
 function buildRail(){
-  const groups={};for(const [k,v] of Object.entries(SPECIES)){(groups[v.g]=groups[v.g]||[]).push(k)}
+  const groups={};const allow=VIEWS[state.view].sp;for(const [k,v] of Object.entries(SPECIES)){if(allow&&!allow.includes(k))continue;(groups[v.g]=groups[v.g]||[]).push(k)}
   const row=$('railRow');row.innerHTML='';
   for(const [g,ks] of Object.entries(groups)){
     const d=document.createElement('div');d.className='group';d.innerHTML='<h4>'+g+'</h4>';
@@ -277,10 +288,16 @@ function tab(t){$('tabRef').setAttribute('aria-selected',t==='ref');$('tabDs').s
 /* ---------- reference ---------- */
 function buildTiers(){
   const r=$('tierRow');r.innerHTML='';
-  for(const [n,l] of Object.entries(TIERS)){const b=document.createElement('button');b.type='button';b.className='tier';b.textContent=n+' · '+l;b.setAttribute('aria-pressed','true');
+  for(const [n,l] of Object.entries(TIERS)){const b=document.createElement('button');b.type='button';b.className='tier';b.textContent=n+' · '+l;b.setAttribute('aria-pressed',state.tiers.has(+n));
     b.onclick=()=>{const t=+n;if(state.tiers.has(t)&&state.tiers.size>1)state.tiers.delete(t);else state.tiers.add(t);b.setAttribute('aria-pressed',state.tiers.has(t));render()};r.appendChild(b)}
 }
 $('q').addEventListener('input',e=>{state.q=e.target.value.trim().toLowerCase();render()});
+function setView(v){if(!VIEWS[v])v='all';state.view=v;const V=VIEWS[v];state.tiers=new Set(V.tiers);if(V.sp&&!V.sp.includes(state.species))state.species=V.sp[0];
+  for(const b of document.querySelectorAll('#viewRow .view'))b.setAttribute('aria-pressed',b.dataset.view===v);
+  const vn=$('viewNote');if(V.note){vn.textContent=V.note;vn.hidden=false}else vn.hidden=true;
+  try{history.replaceState(null,'',v==='all'?location.pathname:'#view='+v)}catch(e){}
+  buildRail();buildTiers();render();renderPlan()}
+function buildViews(){const r=$('viewRow');r.innerHTML='';for(const [k,v] of Object.entries(VIEWS)){const b=document.createElement('button');b.type='button';b.className='view';b.dataset.view=k;b.textContent=v.l;b.setAttribute('aria-pressed',k===state.view);b.onclick=()=>setView(k);r.appendChild(b)}}
 function score(e,q){
   if(!q)return 1;const hay=[e.n,...(e.a||[]),...(e.ind||[]),e.cls,e.evn,e.owner].join(' ').toLowerCase();
   const toks=q.split(/\s+/).filter(Boolean);let s=0;
