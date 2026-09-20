@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.3 — 2026-09-20
+- Tier 6: Osteopathic manipulative treatment (OMT) — dog and horse (evidence C, 4 PMIDs) and Physical therapy / veterinary rehabilitation — dog and horse (evidence B, 4 PMIDs). Texas 22 TAC 573.14 alternate-therapy acknowledgment noted. Other species marked outside scope. Existing chiropractic/osteopathic and controlled-exercise cards unchanged.
+- Knowledge base 72 -> 74 entries.
+
 ## v0.1.2 — 2026-09-14
 - Added 8 DVM prescribing/dispensing reference cards: VCPR; prescription elements and refills; dispensed-drug label; AMDUCA extra-label conditions and records; controlled substances (DEA + Texas); compounding (FDA GFI #256); VFD and GFI #263; prescription portability and online pharmacies. Regulatory text verified against eCFR, FDA, TBVME and AVMA sources. No doses.
 - Touch targets: species chips, tier filters, mode switch, decision-support option buttons and weight input raised to 44 px minimum height.

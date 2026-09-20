@@ -1,5 +1,5 @@
 import json,gzip,base64,hashlib,datetime,kb
-VERSION='v0.1.2'; BUILD=datetime.date.today().isoformat()
+VERSION='v0.1.3'; BUILD=datetime.date.today().isoformat()
 text=json.dumps(kb.KB,separators=(',',':'),ensure_ascii=False)
 sha=hashlib.sha256(text.encode('utf-8')).hexdigest()
 b64=base64.b64encode(gzip.compress(text.encode('utf-8'),9)).decode()
