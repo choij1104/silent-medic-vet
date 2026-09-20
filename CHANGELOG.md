@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.7 — 2026-09-20
+- Visual redesign matching the SILENT MEDIC family: cobalt header/footer (#0d47a1), white panels on a cool grey ground, bold high-contrast type (16 px base), monospace for doses, KB status and hints, blue primary controls, status badges with tinted backgrounds. Markup IDs, logic, content and 44 px targets unchanged.
+
+## v0.1.6 — 2026-09-20
+- v0.2 ruminant/swine batch 1 (Tier 1 OTC): albendazole (Valbazen NADA 110-048), levamisole (Prohibit ANADA 200-225), morantel tartrate (Rumatel NADA 092-444), moxidectin (Cydectin NADA 141-099/141-220/141-247), decoquinate (Deccox NADA 039-417). Doses, withdrawals and restrictions taken from DailyMed labels; extra-label cells carry FARAD. KB 75 -> 80.
+
 ## v0.1.5 — 2026-09-20
 - Acupuncture card: regulatory text updated to Texas 22 TAC 573.16 (2026 combined acupuncture/holistic/homeopathy rule: veterinarian only, conventional-treatment disclosure, signed owner acknowledgment); evidence note and 2 verified PMIDs (17867976, 20513202) added.
 - New DVM reference card: Alternate therapies — Texas law (573.14 manipulation; 573.16 acupuncture/holistic/homeopathy). KB 74 -> 75.

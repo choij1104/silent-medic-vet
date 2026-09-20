@@ -1,4 +1,4 @@
-# SILENT MEDIC VET — knowledge base v0.1.5
+# SILENT MEDIC VET — knowledge base v0.2.0-a
 # ev: A strong controlled data in target species | B some controlled data / label-approved | C extrapolated or anecdotal | D traditional, no controlled data | X evidence of harm
 # rx: otc | rx | unapproved | supp | proc
 # sp status s: ok | caution | no ; d = dose (DVM mode only) ; w = withdrawal ; n = note
@@ -165,6 +165,82 @@ add(n="Ibuprofen / naproxen / acetaminophen (DO NOT USE)",a=["Advil","Aleve","Ty
  owner="Never give human pain relievers to any animal. One Tylenol can kill a cat; one Advil can put a small dog in kidney failure.",
  dvm="Acetaminophen in cats: N-acetylcysteine 140 mg/kg then 70 mg/kg q6h x7; methylene blue caution. NSAID overdose: decontaminate, GI protectants, IV fluids 48-72 h.",
  rf="Brown gums, facial swelling, dark urine, vomiting after exposure.")
+
+# ───────── v0.2 BATCH 1 · RUMINANT / SWINE OTC (labels verified on DailyMed 2026-09-20) ─────────
+_NA_C={k:{"s":"no","n":"Not used in this species."} for k in ["cat","rabbit"]}
+_NA_B={k:{"s":"no","n":"Not indicated.","w":"n/a"} for k in ["chicken","duck","turkey","peafowl"]}
+
+add(n="Albendazole",a=["Valbazen"],tier=1,cls="Benzimidazole anthelmintic (broad spectrum incl. liver fluke)",rx="otc",
+ ind=["deworming","liver fluke","Fasciola","tapeworm","stomach worm","lungworm","Ostertagia inhibited larvae"],ev="A",
+ evn="Valbazen label (NADA 110-048): cattle, sheep, goats — liver flukes, tapeworms, stomach worms including inhibited Ostertagia L4, intestinal worms, lungworms. Teratogenic: not in early pregnancy.",
+ sp={"dog":{"s":"caution","d":"Extra-label; bone marrow toxicity reported with prolonged courses","n":"Fenbendazole preferred."},
+     "horse":{"s":"caution","d":"Extra-label","n":"Fenbendazole/oxibendazole preferred."},
+     "cattle":{"s":"ok","d":"10 mg/kg PO once (4.54 mg/lb; 4 mL/100 lb of 113.6 mg/mL)","w":"Meat 27 d; do not use in female dairy cattle of breeding age (no milk withdrawal established)","n":"Do not give in first 45 d of pregnancy or for 45 d after bull removal (label)."},
+     "sheep":{"s":"ok","d":"7.5 mg/kg PO once (3.4 mg/lb; 0.75 mL/25 lb)","w":"Meat 7 d; not for lactating ewes","n":"Do not give in first 30 d of pregnancy or 30 d after ram removal (label). Resistance common — FECRT."},
+     "goat":{"s":"ok","d":"Label table: 1 mL (113.6 mg) per 25 lb ≈ 10 mg/kg PO once","w":"Meat 7 d; do not use in lactating does","n":"Same 30-d pregnancy restriction as sheep. Goat dose line on label to be confirmed by reviewer (table vs. rate statement)."},
+     "deer":{"s":"caution","d":"Extra-label","w":"FARAD","n":"Farmed deer are food animals; same teratogenicity caution."},
+     "pig":{"s":"caution","d":"Extra-label; fenbendazole labeled instead","w":"FARAD"}} | _NA_C | _NA_B,
+ owner="Feed-store dewormer for cattle, sheep and goats that also kills liver flukes and tapeworms. Never give to a cow in the first 6 weeks of pregnancy or a ewe/doe in the first month — it causes birth defects. Milk from treated goats and dairy cows cannot be used.",
+ dvm="Only OTC flukicide labeled for ruminants. Inhibited Ostertagia activity at 10 mg/kg. Teratogenic window per label; record breeding dates before dosing. Extra-label in goats above label dose needs FARAD. Combine with a different class (levamisole or moxidectin) only as part of a resistance-managed program with FECRT.",
+ reg="NADA 110-048. OTC. Not affected by GFI #263 (not an antimicrobial).",rf="Bottle jaw, pale gums, or sudden weakness in a treated flock — anaemia from Haemonchus is not fixed by a dewormer alone.")
+
+add(n="Levamisole",a=["Prohibit","LevaMed","Levasole"],tier=1,cls="Imidazothiazole anthelmintic",rx="otc",
+ ind=["deworming","Haemonchus","stomach worm","lungworm","benzimidazole resistance"],ev="A",
+ evn="Prohibit soluble drench (ANADA 200-225): cattle and sheep — stomach, intestinal and lungworms. Label volume tables correspond to about 8 mg/kg. Narrow safety margin; cholinergic toxicosis with overdose.",
+ sp={"dog":{"s":"no","n":"Not used; toxic margin narrow."},
+     "horse":{"s":"no","n":"Not used."},
+     "cattle":{"s":"ok","d":"≈8 mg/kg PO once (label: 52 g packet in 1 qt water; 1/2 fl oz per 200 lb)","w":"Meat 48 h; do not give to dairy animals of breeding age","n":"Muzzle foam expected and transient. Do not overdose — weigh, do not estimate."},
+     "sheep":{"s":"ok","d":"≈8 mg/kg PO once (label: 52 g packet in 1 gal water; 1/2 fl oz per 50 lb)","w":"Meat 72 h; not for dairy sheep of breeding age","n":"Useful against benzimidazole-resistant Haemonchus; resistance to levamisole also documented."},
+     "goat":{"s":"caution","d":"Extra-label; goats need a higher mg/kg than sheep but have the narrowest margin — use a published goat chart (ACSRPC) and weigh each animal","w":"FARAD","n":"Toxicosis (salivation, tremor, ataxia, death) reported at modest overdoses."},
+     "deer":{"s":"caution","d":"Extra-label","w":"FARAD"},
+     "pig":{"s":"caution","d":"Extra-label (older swine labels existed)","w":"FARAD"}} | _NA_C | _NA_B,
+ owner="Drench for cattle and sheep that works on worms resistant to the white (benzimidazole) dewormers. Mix exactly as the packet says and dose by actual weight — too much causes drooling, trembling and can kill. Goats need a vet's dose.",
+ dvm="Nicotinic agonist: overdose signs are cholinergic (salivation, tremor, hyperaesthesia, collapse); atropine is not an antidote for the nicotinic component — supportive care. No activity against tapeworms or flukes. Short meat withdrawal makes it useful pre-sale. Rotate by class, not by brand.",
+ reg="ANADA 200-225 (Prohibit). OTC.",rf="Drooling, trembling, staggering or collapse within hours of drenching — levamisole toxicosis, emergency.")
+
+add(n="Morantel tartrate",a=["Rumatel","Positive Pellet"],tier=1,cls="Tetrahydropyrimidine anthelmintic (feed)",rx="otc",
+ ind=["deworming","Haemonchus","goat dewormer","dairy goat","stomach worm"],ev="A",
+ evn="Rumatel 88 (NADA 092-444): cattle and goats — adult gastrointestinal nematodes including Haemonchus, Ostertagia/Teladorsagia, Trichostrongylus. No milk discard in dairy cattle or goats.",
+ sp={"dog":{"s":"no","n":"Not used."},"horse":{"s":"no","n":"Pyrantel used instead."},
+     "cattle":{"s":"ok","d":"0.44 g morantel tartrate per 100 lb (≈9.7 mg/kg) once, top-dressed or mixed in feed","w":"Meat 14 d; milk 0 d","n":"Adult worms only — no larvicidal or fluke activity."},
+     "sheep":{"s":"caution","d":"Extra-label (no US sheep label)","w":"FARAD"},
+     "goat":{"s":"ok","d":"0.44 g per 100 lb (≈9.7 mg/kg) once in feed","w":"Meat 30 d; milk 0 d","n":"One of two dewormers with a US goat label; the only one with zero milk withdrawal."},
+     "deer":{"s":"caution","d":"Extra-label","w":"FARAD"},
+     "pig":{"s":"no","n":"Pyrantel labeled for swine instead."}} | _NA_C | _NA_B,
+ owner="Feed dewormer approved for goats and cattle with no milk withdrawal — the usual choice for milking goats. Only works on adult worms and every animal must eat its full dose.",
+ dvm="Same class as pyrantel; cross-resistance expected. Efficacy depends on intake — individual top-dress in goats. No activity against Moniezia, flukes or larvae. FECRT 10-14 d post-treatment.",
+ reg="NADA 092-444. OTC Type A medicated article.",rf="")
+
+add(n="Moxidectin",a=["Cydectin","ProHeart (Rx)","Quest"],tier=1,cls="Macrocyclic lactone (milbemycin)",rx="otc",
+ ind=["deworming","Haemonchus","ivermectin resistance","lice","mites","grubs","dairy cattle dewormer"],ev="A",
+ evn="Cydectin cattle pour-on (NADA 141-099) 0.5 mg/kg, zero meat and milk withdrawal; cattle injectable (NADA 141-220) 0.2 mg/kg SC, meat 21 d, not for dairy ≥20 mo; sheep oral drench (NADA 141-247) 0.2 mg/kg, meat 7 d. Often retains activity where ivermectin has failed, but resistance is emerging.",
+ sp={"dog":{"s":"caution","d":"Rx heartworm products only (ProHeart 6/12 injectable, oral combinations)","n":"MDR1 breeds: livestock-strength moxidectin has killed dogs. Never dose from Cydectin."},
+     "cat":{"s":"caution","d":"Rx topical combinations only","n":"Not from livestock products."},
+     "horse":{"s":"ok","d":"0.4 mg/kg PO gel (Quest label)","n":"Foals <6 mo: narrow margin — use label age limits. Effective against encysted cyathostomins."},
+     "cattle":{"s":"ok","d":"Pour-on 0.5 mg/kg (1 mL/10 kg); injectable 0.2 mg/kg SC","w":"Pour-on: meat 0 d, milk 0 d; injectable: meat 21 d, not for female dairy ≥20 mo; not for veal calves","n":"Pour-on is the only endectocide with zero milk withdrawal in lactating dairy cows. Keep out of waterways — toxic to aquatic life."},
+     "sheep":{"s":"ok","d":"0.2 mg/kg PO drench (1 mL/11 lb)","w":"Meat 7 d; not for dairy sheep","n":"Oral only — do not inject the drench. Monitor with FECRT; resistance documented."},
+     "goat":{"s":"caution","d":"Extra-label; goats clear macrocyclic lactones faster — published goat charts use a higher mg/kg than the sheep label","w":"FARAD","n":"Sheep drench used orally; pour-on formulations are not reliable orally or topically in goats."},
+     "deer":{"s":"caution","d":"Extra-label","w":"FARAD"},
+     "pig":{"s":"caution","d":"Extra-label (ivermectin labeled instead)","w":"FARAD"}} | {k:{"s":"no","n":"Not used.","w":"n/a"} for k in ["chicken","duck","turkey","peafowl"]} | {"rabbit":{"s":"caution","n":"Extra-label; ivermectin more commonly used."}},
+ owner="Cydectin pour-on is the dewormer dairy farms use because milk needs no withholding. Sheep drench is oral only. Never put livestock moxidectin on a dog — it can be fatal in collie-type breeds.",
+ dvm="Longer persistence than ivermectin; side-resistance within macrocyclic lactones is partial, so moxidectin may still work where ivermectin fails, but selection pressure is high — use in a refugia-based program, not as routine. Goats: extra-label, oral drench route; pour-on in goats is unreliable. Environmental: dung-fauna and aquatic toxicity.",
+ reg="NADA 141-099 (pour-on), 141-220 (injectable), 141-247 (sheep drench). OTC. Companion-animal products are Rx.",rf="Ataxia, blindness, tremors after exposure (especially dogs) — macrocyclic lactone toxicosis, emergency.")
+
+add(n="Decoquinate",a=["Deccox","Deccox-M"],tier=1,cls="Quinolone coccidiostat (feed)",rx="otc",
+ ind=["coccidiosis prevention","calves","lambs","kids","broilers","Eimeria","weaning"],ev="A",
+ evn="Deccox (NADA 039-417): ruminating and non-ruminating calves including veal, cattle, young sheep, young goats, broiler chickens — prevention of coccidiosis at 0.5 mg/kg/day for at least 28 days; zero withdrawal.",
+ sp={"dog":{"s":"caution","d":"Extra-label; some use for Neospora/Hepatozoon","n":"Off-label."},"cat":{"s":"caution","n":"Off-label."},"rabbit":{"s":"caution","d":"Extra-label","n":"Some use for hepatic coccidiosis."},
+     "horse":{"s":"no","n":"Not used."},
+     "cattle":{"s":"ok","d":"0.5 mg/kg/day in feed (22.7 mg/100 lb) for ≥28 d during exposure","w":"0 d; do not feed to cows producing milk for human consumption","n":"Prevention only — does not treat clinical coccidiosis (use amprolium or sulfas)."},
+     "sheep":{"s":"ok","d":"0.5 mg/kg/day in feed for ≥28 d (young sheep)","w":"0 d; not for lactating ewes producing milk for humans"},
+     "goat":{"s":"ok","d":"0.5 mg/kg/day in feed for ≥28 d (young goats)","w":"0 d; not for lactating does producing milk for humans","n":"Labeled for goats — start before the risk period (weaning, transport)."},
+     "deer":{"s":"caution","d":"Extra-label","w":"FARAD"},
+     "pig":{"s":"no","n":"Not labeled."},
+     "chicken":{"s":"ok","d":"Per label in broiler feed (Deccox-M)","w":"0 d; do not feed to laying hens producing eggs for humans","n":"Broilers only."},
+     "duck":{"s":"caution","d":"Extra-label","w":"Undefined; FARAD"},"turkey":{"s":"caution","d":"Extra-label","w":"Undefined; FARAD"},"peafowl":{"s":"caution","d":"Extra-label","w":"Undefined; FARAD"}},
+ owner="A feed additive that prevents coccidiosis in calves, lambs, kids and meat chickens. It has to be eaten every day for at least 4 weeks and started before the stress period. It will not cure an animal that already has bloody scours — that needs treatment.",
+ dvm="Static, not cidal: prevents oocyst output when fed continuously through the exposure window (28 d minimum). Not a treatment. Combine with hygiene and stocking-density control. Not an antimicrobial under GFI #263 — remains OTC.",
+ reg="NADA 039-417 (Deccox). OTC Type A medicated article.",rf="Bloody or black diarrhoea, straining, dehydration in young stock despite preventive feed — treat, do not wait.")
 
 # ───────── TIER 2 · Rx SMALL MOLECULE ─────────
 add(n="Carprofen",a=["Rimadyl","Novox"],tier=2,cls="COX-2 preferential NSAID",rx="rx",
