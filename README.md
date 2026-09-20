@@ -9,6 +9,9 @@ Offline veterinary decision support for owners and veterinarians. Single-file PW
 **Views:** All · Rehab & Manual Therapy (dog and horse, tiers 4+6; deep link `index.html#view=rehab`).
 **Evidence grades:** A strong in-species data · B some controlled data / label · C extrapolated/anecdotal · D traditional/marketed only · X evidence of harm
 
+## Install as an app
+Open the GitHub Pages URL once, then: iPhone — Share → Add to Home Screen; Android / desktop Chrome — Install. The service worker caches the app's own files only; nothing is transmitted.
+
 ## Build
 ```
 python3 build.py        # kb.py + template.html -> index.html

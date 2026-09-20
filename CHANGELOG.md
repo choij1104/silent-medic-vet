@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.1.8 — 2026-09-20
+- Progressive Web App: manifest.webmanifest, sw.js (cache-first with background revalidation, cache name stamped with the app version by build.py), icon-192/512, install button in the footer (shown when the browser offers install). Installs to the home screen on iOS, Android and desktop; opens with no network after the first visit. No content change.
+
 ## v0.1.7 — 2026-09-20
 - Visual redesign matching the SILENT MEDIC family: cobalt header/footer (#0d47a1), white panels on a cool grey ground, bold high-contrast type (16 px base), monospace for doses, KB status and hints, blue primary controls, status badges with tinted backgrounds. Markup IDs, logic, content and 44 px targets unchanged.
 

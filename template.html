@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
 SILENT MEDIC VET — version history
+v0.1.8  2026-09-20  PWA: manifest, service worker (cache-first, version-stamped), icons, install button. Installable on iOS/Android/desktop; runs offline after first visit.
 v0.1.7  2026-09-20  Visual redesign in the SILENT MEDIC family style: cobalt header and footer, white panels, high-contrast bold type, monospace for doses and status, blue primary controls. Layout classes only; no logic or content change.
 v0.1.6  2026-09-20  v0.2 batch 1: albendazole, levamisole, morantel, moxidectin, decoquinate (labels verified on DailyMed). KB 75 -> 80.
 v0.1.5  2026-09-20  Acupuncture card: Texas 573.16 (2026) regulatory text and 2 verified PMIDs; new DVM reference card 'Alternate therapies — Texas law'. KB 74 -> 75.
@@ -16,6 +17,11 @@ v0.1.0  2026-09-06  Initial seed: 64 entries, 13 species, 6 tiers, 11 problem fl
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <meta name="theme-color" content="#0d47a1">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="SILENT MEDIC VET">
 <meta name="description" content="Offline veterinary decision support for owners and veterinarians. Six treatment tiers — OTC to manual therapy — graded by evidence, species safety, withdrawal, and regulatory status. No network calls.">
@@ -229,6 +235,8 @@ footer strong{color:#fff}
 </div>
 
 <footer class="pad">
+  <button type="button" id="installBtn" class="copyRow-btn" hidden style="width:100%;margin-bottom:12px;background:#fff;color:var(--blue-dark);border:0;border-radius:var(--r);padding:12px;font-weight:800;min-height:48px">Install SILENT MEDIC VET on this device</button>
+  <p>Installable app: add to home screen (iPhone: Share → Add to Home Screen; Android/desktop Chrome: Install). Works fully offline after the first visit.</p>
   <p><strong>SILENT MEDIC VET __VERSION__</strong> · build __BUILD__ · knowledge base __KBCOUNT__ entries across 6 treatment tiers · 13 species.</p>
   <p>All inference is local. No data leaves this device. Doses shown in Veterinarian mode are reference values from published formularies and labels; verify against current labels, Plumb's, and FARAD before use. Extra-label use in food animals requires a valid VCPR and a FARAD-derived withdrawal.</p>
   <p>Unapproved peptides (Tier 3C) are summarized for reference only and are not recommended by this tool.</p>
@@ -523,6 +531,14 @@ function renderPlan(){
   $('copyPlan').onclick=()=>{navigator.clipboard.writeText(P.innerText).then(()=>{$('copyPlan').textContent='Copied'}).catch(()=>{$('copyPlan').textContent='Copy failed'})};
 }
 boot();
+
+/* PWA: register the service worker so the app opens with no network after the first visit.
+   Only over http(s) — file:// and the headless test harness skip it. Failure is silent by design. */
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js').catch(()=>{})});
+}
+let _installEvt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();_installEvt=e;const b=document.getElementById('installBtn');if(b){b.hidden=false;b.onclick=()=>{_installEvt.prompt();_installEvt=null;b.hidden=true}}});
 </script>
 </body>
 </html>
