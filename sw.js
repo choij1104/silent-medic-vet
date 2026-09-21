@@ -3,7 +3,7 @@
 // It caches only this app's own files, never contacts another origin, and never transmits
 // anything — the app itself makes no network requests at runtime.
 // CACHE is stamped with the app version by build.py so a new release replaces the old cache.
-const CACHE = 'silent-medic-vet-v0.1.8';
+const CACHE = 'silent-medic-vet-v0.1.9';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {

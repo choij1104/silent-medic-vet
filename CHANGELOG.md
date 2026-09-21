@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.1.9 — 2026-09-20
+- Decision support: the Lameness / joint / muscle plan for dog and horse now includes a 'Rehabilitation, manual and integrative therapy' section linking the physical therapy, acupuncture, OMT, chiropractic, holistic and laser/PEMF/shockwave cards, with the Texas 573.14/573.16 note.
+- Tier 5: Holistic / integrative veterinary medicine — dog and horse (framework card; evidence C overall, modality grades referenced; Texas 573.16 veterinarian-only and acknowledgment; PMIDs 27200270, 25576265). KB 80 -> 81.
+- Rehab & Manual Therapy view now preselects tiers 4, 5 and 6 (nutraceutical, herbal/holistic, manual). The URL hash is no longer written when the view is selected, and a deep-link hash is cleared after it is applied, so reloads, bookmarks and the installed app always open on All (13 species, 6 tiers). Nothing was removed from the knowledge base at any point.
+
 ## v0.1.8 — 2026-09-20
 - Progressive Web App: manifest.webmanifest, sw.js (cache-first with background revalidation, cache name stamped with the app version by build.py), icon-192/512, install button in the footer (shown when the browser offers install). Installs to the home screen on iOS, Android and desktop; opens with no network after the first visit. No content change.
 

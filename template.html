@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!--
 SILENT MEDIC VET — version history
+v0.1.9  2026-09-20  Decision support: lameness plan for dog and horse now lists a 'Rehabilitation, manual and integrative therapy' section (PT, acupuncture, OMT, chiropractic, holistic, laser/PEMF/shockwave). Tier 5: holistic / integrative veterinary medicine card (dog and horse, 2 PMIDs). Rehab view no longer persists in the URL — app always starts on All. KB 80 -> 81.
 v0.1.8  2026-09-20  PWA: manifest, service worker (cache-first, version-stamped), icons, install button. Installable on iOS/Android/desktop; runs offline after first visit.
 v0.1.7  2026-09-20  Visual redesign in the SILENT MEDIC family style: cobalt header and footer, white panels, high-contrast bold type, monospace for doses and status, blue primary controls. Layout classes only; no logic or content change.
 v0.1.6  2026-09-20  v0.2 batch 1: albendazole, levamisole, morantel, moxidectin, decoquinate (labels verified on DailyMed). KB 75 -> 80.
@@ -259,8 +260,8 @@ const TIERS={1:'OTC drug',2:'Rx drug',3:'Peptide / biologic',4:'Nutraceutical',5
 const RX={otc:'OTC',rx:'Rx',unapproved:'Not approved',supp:'Supplement',proc:'Procedure'};
 const EVL={A:'Strong evidence in this species',B:'Some controlled data or label approval',C:'Extrapolated or anecdotal',D:'Traditional or marketed — no controlled data',X:'Evidence of harm'};
 const state={kb:[],mode:'owner',species:'dog',weight:null,tiers:new Set([1,2,3,4,5,6]),q:'',ds:{syn:null,onset:null,res:new Set()},view:'all'};
-/* Views are additive presets over the same KB: 'rehab' limits the species rail to dog and horse and preselects tiers 4 and 6. Nothing is removed from the KB; switching back to 'all' restores every species and tier. Deep link: #view=rehab */
-const VIEWS={all:{l:'All',sp:null,tiers:[1,2,3,4,5,6]},rehab:{l:'Rehab & Manual Therapy',sp:['dog','horse'],tiers:[4,6],note:'Dog and horse · rehabilitation, manual therapy and supportive nutraceuticals · evidence-graded · Texas 22 TAC 573.14 applies to manipulation'}};
+/* Views are additive presets over the same KB: 'rehab' limits the species rail to dog and horse and preselects tiers 4 and 6. Nothing is removed from the KB; switching back to 'all' restores every species and tier. Deep link #view=rehab opens the preset once; the hash is then cleared so reloads, bookmarks and the installed app always start on 'All'. */
+const VIEWS={all:{l:'All',sp:null,tiers:[1,2,3,4,5,6]},rehab:{l:'Rehab & Manual Therapy',sp:['dog','horse'],tiers:[4,5,6],note:'Dog and horse · rehabilitation, manual therapy, holistic/herbal and supportive nutraceuticals · evidence-graded · Texas 22 TAC 573.14 applies to manipulation. Tap All to return to every species and every drug.'}};
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -316,7 +317,7 @@ $('q').addEventListener('input',e=>{state.q=e.target.value.trim().toLowerCase();
 function setView(v){if(!VIEWS[v])v='all';state.view=v;const V=VIEWS[v];state.tiers=new Set(V.tiers);if(V.sp&&!V.sp.includes(state.species))state.species=V.sp[0];
   for(const b of document.querySelectorAll('#viewRow .view'))b.setAttribute('aria-pressed',b.dataset.view===v);
   const vn=$('viewNote');if(V.note){vn.textContent=V.note;vn.hidden=false}else vn.hidden=true;
-  try{history.replaceState(null,'',v==='all'?location.pathname:'#view='+v)}catch(e){}
+  try{if(location.hash)history.replaceState(null,'',location.pathname+location.search)}catch(e){}
   buildRail();buildTiers();render();renderPlan()}
 function buildViews(){const r=$('viewRow');r.innerHTML='';for(const [k,v] of Object.entries(VIEWS)){const b=document.createElement('button');b.type='button';b.className='view';b.dataset.view=k;b.textContent=v.l;b.setAttribute('aria-pressed',k===state.view);b.onclick=()=>setView(k);r.appendChild(b)}}
 function score(e,q){
@@ -398,7 +399,7 @@ const FOOD=k=>!!SPECIES[k].food;
 function kbn(...names){return names.map(n=>state.kb.find(e=>e.n.toLowerCase().startsWith(n.toLowerCase()))).filter(Boolean)}
 
 function rules(sp,syn,onset){
-  const g=G(sp),food=FOOD(sp);const P={do:[],dont:[],otc:[],red:[],rx:[],note:[]};
+  const g=G(sp),food=FOOD(sp);const P={do:[],dont:[],otc:[],rehab:[],red:[],rx:[],note:[]};
   const add=(k,...x)=>P[k].push(...x);
   const isDog=sp==='dog',isCat=sp==='cat',isRab=sp==='rabbit',isHorse=sp==='horse',isBird=g==='Poultry',isRum=g==='Ruminant';
   switch(syn){
@@ -418,6 +419,7 @@ function rules(sp,syn,onset){
     if(onset==='chronic')add('otc','Omega-3 fatty acids (EPA/DHA)','Green-lipped mussel (Perna canaliculus)','Undenatured type II collagen (UC-II)',isHorse?'Oral hyaluronic acid / resveratrol (equine)':'Cannabidiol (CBD)');
     add('red','Cannot bear weight on the limb','Obvious deformity, crepitus, or a limb hanging wrong',isHorse?'Both front feet hot with bounding pulses, rocked-back stance — laminitis, emergency':'Sudden hind-limb collapse (cats: check for cold, painful legs — clot)','Swollen, hot joint with fever','Lameness in a growing animal that lasts >24 h');
     add('rx',isHorse?'Phenylbutazone':isCat?'Frunevetmab':isDog?'Carprofen':'Meloxicam',isDog?'Bedinvetmab':'Meloxicam',isDog?'Grapiprant':'Gabapentin','Gabapentin','Omeprazole');
+    if(isDog||isHorse)add('rehab','Physical therapy / veterinary rehabilitation — dog and horse','Acupuncture','Osteopathic manipulative treatment (OMT) — dog and horse','Chiropractic / osteopathic manipulation','Holistic / integrative veterinary medicine — dog and horse','Therapeutic laser / PEMF / shockwave');
     if(isHorse)add('note','Competition horses: bute, flunixin, devil’s claw, CBD, and all Tier 3C peptides are prohibited or controlled — check FEI/USEF lists before anything is given.');
     if(isBird)add('note','Birds: check feet for bumblefoot (black scab on pad), leg-band constriction, and perch injuries; splay leg in chicks is a housing problem.');
     add('note','Peptide therapies: only Librela (dog) and Solensia (cat) are approved. BPC-157 / TB-500 have no controlled data in any animal and are competition-banned — see Tier 3C cards.');
@@ -522,6 +524,7 @@ function renderPlan(){
   h+='<section><h3>Do now — '+esc(SPECIES[sp].l)+(state.weight?', '+state.weight+' kg':'')+'</h3><ol>'+li(r.do)+'</ol></section>';
   h+='<section><h3>Do not</h3><ul>'+li(r.dont)+'</ul></section>';
   const otc=kbli(r.otc);if(otc)h+='<section><h3>Without a prescription (tap to open)</h3><ul>'+otc+'</ul></section>';
+  const rh=kbli(r.rehab||[]);if(rh)h+='<section><h3>Rehabilitation, manual and integrative therapy (tap to open)</h3><ul>'+rh+'</ul><p class="note">Adjuncts after diagnosis, not substitutes. Texas: acupuncture, holistic and homeopathic care are veterinarian-only; manipulation needs veterinary supervision and a signed acknowledgment (22 TAC 573.14 / 573.16).</p></section>';
   if(isDvm){const rx=kbli(r.rx);if(rx)h+='<section class="dvm"><h3>Rx options — Veterinarian view</h3><ul>'+rx+'</ul>'+(food?'<p class="note">Food-producing species: extra-label use requires VCPR and FARAD withdrawal; see "Prohibited extra-label drugs" reference card.</p>':'')+'</section>'}
   else h+='<section class="dvm"><h3>Prescription options exist</h3><p class="note">Your veterinarian has approved drugs for this problem'+(sp==='dog'||sp==='cat'?', including monthly antibody injections for arthritis':'')+'. Switch to Veterinarian view to see them listed.</p></section>';
   if(r.note.length)h+='<section><h3>Notes</h3><ul>'+li(r.note)+'</ul></section>';
