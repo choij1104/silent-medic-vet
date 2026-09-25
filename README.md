@@ -4,7 +4,8 @@ Offline veterinary decision support for owners and veterinarians. Single-file PW
 
 **Species (13):** dog, cat, rabbit · horse · cattle, sheep, goat, deer · pig · chicken, duck, turkey, peafowl
 **Modes:** Owner (OTC/supplement/first aid, red flags, "Rx exists") · Veterinarian (mg/kg reference doses, AMDUCA/withdrawal, DVM notes)
-**Treatment tiers:** 1 OTC drug · 2 Rx small molecule · 3 Peptide/biologic (3A approved veterinary · 3B human-approved extra-label · 3C unapproved/research — red band, reference only) · 4 Nutraceutical · 5 Herbal/TCVM · 6 Manual/physical
+**Treatment tiers:** 1 OTC drug · 2 Rx small molecule · 3 Peptide/biologic (3A approved veterinary · 3B human-approved extra-label · 3C unapproved/research — red band, reference only) · 4 Nutraceutical · 5 Herbal/TCVM · 6 Manual/physical · 7 Human medicines at home (cross-reference: ok / caution / do not use per species)
+**Conditions (v0.2.0):** disease cards with triage band, breeds at risk, owner actions, human medicines at home, and DVM diagnostics/treatment direction. Breed search. Pilot: 12 eye conditions (`cond.py`).
 **Prescribing reference (DVM, v0.1.2):** VCPR · prescription elements & refills · dispensed-drug label · AMDUCA extra-label conditions & records · controlled substances (DEA + Texas) · compounding (GFI #256) · VFD / GFI #263 · prescription portability & online pharmacies. Federal + Texas; substitute your state practice act.
 **Views:** All · Rehab & Manual Therapy (dog and horse, tiers 4+5+6; deep link `index.html#view=rehab`).
 **Evidence grades:** A strong in-species data · B some controlled data / label · C extrapolated/anecdotal · D traditional/marketed only · X evidence of harm
@@ -16,7 +17,7 @@ Open the GitHub Pages URL once, then: iPhone — Share → Add to Home Screen; A
 ```
 python3 build.py        # kb.py + template.html -> index.html
 ```
-Edit `kb.py` to add entries (schema documented at the top of the file). Bump `VERSION` in `build.py`.
+Edit `kb.py` (tiers 1-6), `kb_human.py` (tier 7, appended by build.py) or `cond.py` (conditions) — schemas at the top of each file. `build.py` validates every cross-link. Bump `VERSION` in `build.py`.
 
 ## Deploy
 GitHub Pages: push `index.html` to `main`, enable Pages (root).
