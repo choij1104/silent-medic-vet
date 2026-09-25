@@ -1,0 +1,206 @@
+--- a/template.html
++++ b/template.html
+@@ -98,4 +98,5 @@ header .brand small{font-family:var(--mono);font-weight:500;color:#bbd6f8;margin
+ /* tabs */
+-.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--panel)}
+-.tabs button{background:transparent;border:0;border-bottom:3px solid transparent;padding:12px 2px 10px;margin-right:24px;font-weight:700;font-size:15px;color:var(--text-3);min-height:46px}
++.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--panel);overflow-x:auto;scrollbar-width:none}
++.tabs::-webkit-scrollbar{display:none}
++.tabs button{background:transparent;border:0;border-bottom:3px solid transparent;padding:12px 2px 10px;margin-right:20px;font-weight:700;font-size:15px;color:var(--text-3);min-height:46px;white-space:nowrap;flex:none}
+ .tabs button[aria-selected="true"]{color:var(--blue);border-bottom-color:var(--blue)}
+@@ -177,3 +178,16 @@ footer strong{color:#fff}
+ 
++.tri{font-weight:800;padding:9px 14px;font-size:14px;letter-spacing:.02em;color:#fff}
++.tri.E{background:var(--red)}.tri.U{background:var(--orange)}.tri.S{background:var(--blue)}.tri.H{background:var(--green)}
++.b.tri{padding:4px 8px;font-size:12px}
++.b.zoo{background:var(--purple-bg);color:var(--purple)}.b.reg{background:var(--teal-bg);color:var(--teal)}
++.b.hum{background:var(--teal-bg);color:var(--teal);font-family:var(--mono)}
++.condFilter{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 6px}
++.triLegend{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 4px}
++.triLegend span{font-size:12px;font-weight:700;border-radius:4px;padding:3px 7px;color:#fff}
++.breedHit{background:var(--orange-bg);border:1px solid #f3d4ad;border-radius:var(--r);padding:8px 10px;margin-top:12px;font-size:14.5px}
++.body a.lk,.body .lk{color:var(--blue);text-decoration:underline;text-underline-offset:2px;font-weight:600;cursor:pointer}
++.body ul.lkl{list-style:none;padding-left:0}.body ul.lkl li{margin:5px 0}
+ @media (min-width:900px){
++  .panel.active#condPanel{display:grid;grid-template-columns:320px 1fr;gap:24px;align-items:start;padding-left:max(16px,calc((100% - 1100px)/2));padding-right:max(16px,calc((100% - 1100px)/2))}
++  #condPanel .left{position:sticky;top:150px}
+   .panel.active#refPanel{display:grid;grid-template-columns:320px 1fr;gap:24px;align-items:start;padding-left:max(16px,calc((100% - 1100px)/2));padding-right:max(16px,calc((100% - 1100px)/2))}
+@@ -215,2 +229,3 @@ footer strong{color:#fff}
+   <button role="tab" id="tabRef" aria-selected="true" aria-controls="refPanel">Reference</button>
++  <button role="tab" id="tabCond" aria-selected="false" aria-controls="condPanel">Conditions</button>
+   <button role="tab" id="tabDs" aria-selected="false" aria-controls="dsPanel">Decision support</button>
+@@ -229,2 +244,14 @@ footer strong{color:#fff}
+ 
++<div class="panel pad" id="condPanel" role="tabpanel">
++  <div class="left">
++    <div class="search">
++      <input type="search" id="condQ" placeholder="Condition, sign, or breed… e.g. glaucoma, tearing, Shih Tzu" aria-label="Search conditions">
++    </div>
++    <div class="condFilter" id="condSys" role="group" aria-label="Body system"></div>
++    <div class="triLegend" aria-label="Triage legend"><span style="background:var(--red)">Emergency</span><span style="background:var(--orange)">24 h</span><span style="background:var(--blue)">Book a visit</span><span style="background:var(--green)">Home care</span></div>
++    <p class="hint" id="condHint"></p>
++  </div>
++  <div class="results" id="condResults"></div>
++</div>
++
+ <div class="panel pad ds" id="dsPanel" role="tabpanel">
+@@ -240,5 +267,5 @@ footer strong{color:#fff}
+   <p>Installable app: add to home screen (iPhone: Share → Add to Home Screen; Android/desktop Chrome: Install). Works fully offline after the first visit.</p>
+-  <p><strong>SILENT MEDIC VET __VERSION__</strong> · build __BUILD__ · knowledge base __KBCOUNT__ entries across 6 treatment tiers · 13 species.</p>
++  <p><strong>SILENT MEDIC VET __VERSION__</strong> · build __BUILD__ · knowledge base __KBCOUNT__ entries across 6 treatment tiers plus human medicines at home · __CONDCOUNT__ conditions · 13 species.</p>
+   <p>All inference is local. No data leaves this device. Doses shown in Veterinarian mode are reference values from published formularies and labels; verify against current labels, Plumb's, and FARAD before use. Extra-label use in food animals requires a valid VCPR and a FARAD-derived withdrawal.</p>
+-  <p>Unapproved peptides (Tier 3C) are summarized for reference only and are not recommended by this tool.</p>
++  <p>Unapproved peptides (Tier 3C) are summarized for reference only and are not recommended by this tool. Tier 7 lists human medicines an owner may already have; using a human prescription product in an animal is extra-label and requires a veterinarian's order.</p>
+   <p>© 2026 Jae H. Choi, MSc, PhD, DVSc · Auravyx Systems · Prototype — not a substitute for a licensed veterinarian.</p>
+@@ -258,8 +285,10 @@ const SPECIES={
+ };
+-const TIERS={1:'OTC drug',2:'Rx drug',3:'Peptide / biologic',4:'Nutraceutical',5:'Herbal / TCVM',6:'Manual / physical'};
++const TIERS={1:'OTC drug',2:'Rx drug',3:'Peptide / biologic',4:'Nutraceutical',5:'Herbal / TCVM',6:'Manual / physical',7:'Human meds at home'};
++const TRI={E:'Emergency — go now',U:'See a veterinarian within 24 hours',S:'Book a visit (days)',H:'Home care is reasonable — watch for red flags'};
++const TRIS={E:'Emergency',U:'24 h',S:'Book a visit',H:'Home care'};
+ const RX={otc:'OTC',rx:'Rx',unapproved:'Not approved',supp:'Supplement',proc:'Procedure'};
+ const EVL={A:'Strong evidence in this species',B:'Some controlled data or label approval',C:'Extrapolated or anecdotal',D:'Traditional or marketed — no controlled data',X:'Evidence of harm'};
+-const state={kb:[],mode:'owner',species:'dog',weight:null,tiers:new Set([1,2,3,4,5,6]),q:'',ds:{syn:null,onset:null,res:new Set()},view:'all'};
++const state={kb:[],mode:'owner',species:'dog',weight:null,tiers:new Set([1,2,3,4,5,6,7]),q:'',ds:{syn:null,onset:null,res:new Set()},view:'all',cond:[],cq:'',csys:'all'};
+ /* Views are additive presets over the same KB: 'rehab' limits the species rail to dog and horse and preselects tiers 4 and 6. Nothing is removed from the KB; switching back to 'all' restores every species and tier. Deep link #view=rehab opens the preset once; the hash is then cleared so reloads, bookmarks and the installed app always start on 'All'. */
+-const VIEWS={all:{l:'All',sp:null,tiers:[1,2,3,4,5,6]},rehab:{l:'Rehab & Manual Therapy',sp:['dog','horse'],tiers:[4,5,6],note:'Dog and horse · rehabilitation, manual therapy, holistic/herbal and supportive nutraceuticals · evidence-graded · Texas 22 TAC 573.14 applies to manipulation. Tap All to return to every species and every drug.'}};
++const VIEWS={all:{l:'All',sp:null,tiers:[1,2,3,4,5,6,7]},rehab:{l:'Rehab & Manual Therapy',sp:['dog','horse'],tiers:[4,5,6],note:'Dog and horse · rehabilitation, manual therapy, holistic/herbal and supportive nutraceuticals · evidence-graded · Texas 22 TAC 573.14 applies to manipulation. Tap All to return to every species and every drug.'}};
+ const $=id=>document.getElementById(id);
+@@ -283,6 +312,6 @@ async function boot(){
+   log('Decompressing knowledge base');
+-  try{state.kb=await decompressKB();log('Loaded '+state.kb.length+' entries','ok');log(state.kbOk?'Integrity verified (SHA-256)':'Integrity check failed — data may be altered',state.kbOk?'ok':'warn')}
++  try{const D=await decompressKB();if(Array.isArray(D)){state.kb=D;state.cond=[]}else{state.kb=D.kb||[];state.cond=D.cond||[]}log('Loaded '+state.kb.length+' entries · '+state.cond.length+' conditions','ok');log(state.kbOk?'Integrity verified (SHA-256)':'Integrity check failed — data may be altered',state.kbOk?'ok':'warn')}
+   catch(e){log('Knowledge base error: '+e.message,'err')}
+   $('bootBar').style.width='80%';await sleep(120);
+-  buildViews();const hv=(location.hash.match(/view=([a-z]+)/)||[])[1];if(hv&&VIEWS[hv]){setView(hv)}else{buildRail();buildTiers()}buildDS();render();
++  buildViews();const hv=(location.hash.match(/view=([a-z]+)/)||[])[1];if(hv&&VIEWS[hv]){setView(hv)}else{buildRail();buildTiers()}buildDS();buildCondSys();render();renderCond();
+   $('bootBar').style.width='100%';log('Ready','ok');
+@@ -298,3 +327,3 @@ function buildRail(){
+     const c=document.createElement('div');c.className='chips';
+-    for(const k of ks){const b=document.createElement('button');b.type='button';b.className='chip'+(SPECIES[k].food?' food':'');b.textContent=SPECIES[k].l;b.setAttribute('aria-pressed',k===state.species);b.onclick=()=>{state.species=k;buildRail();render();renderPlan()};c.appendChild(b)}
++    for(const k of ks){const b=document.createElement('button');b.type='button';b.className='chip'+(SPECIES[k].food?' food':'');b.textContent=SPECIES[k].l;b.setAttribute('aria-pressed',k===state.species);b.onclick=()=>{state.species=k;buildRail();render();renderCond();renderPlan()};c.appendChild(b)}
+     d.appendChild(c);row.appendChild(d);
+@@ -305,5 +334,5 @@ $('weight').addEventListener('input',e=>{state.weight=parseFloat(e.target.value)
+ $('modeOwner').onclick=()=>setMode('owner');$('modeDvm').onclick=()=>setMode('dvm');
+-function setMode(m){state.mode=m;$('modeOwner').setAttribute('aria-pressed',m==='owner');$('modeDvm').setAttribute('aria-pressed',m==='dvm');render();renderPlan()}
+-$('tabRef').onclick=()=>tab('ref');$('tabDs').onclick=()=>tab('ds');
+-function tab(t){$('tabRef').setAttribute('aria-selected',t==='ref');$('tabDs').setAttribute('aria-selected',t==='ds');$('refPanel').classList.toggle('active',t==='ref');$('dsPanel').classList.toggle('active',t==='ds')}
++function setMode(m){state.mode=m;$('modeOwner').setAttribute('aria-pressed',m==='owner');$('modeDvm').setAttribute('aria-pressed',m==='dvm');render();renderCond();renderPlan()}
++$('tabRef').onclick=()=>tab('ref');$('tabCond').onclick=()=>tab('cond');$('tabDs').onclick=()=>tab('ds');
++function tab(t){for(const k of ['ref','cond','ds']){$('tab'+k[0].toUpperCase()+k.slice(1)).setAttribute('aria-selected',t===k);$(k+'Panel').classList.toggle('active',t===k)}}
+ 
+@@ -320,3 +349,3 @@ function setView(v){if(!VIEWS[v])v='all';state.view=v;const V=VIEWS[v];state.tie
+   try{if(location.hash)history.replaceState(null,'',location.pathname+location.search)}catch(e){}
+-  buildRail();buildTiers();render();renderPlan()}
++  buildRail();buildTiers();render();renderCond();renderPlan()}
+ function buildViews(){const r=$('viewRow');r.innerHTML='';for(const [k,v] of Object.entries(VIEWS)){const b=document.createElement('button');b.type='button';b.className='view';b.dataset.view=k;b.textContent=v.l;b.setAttribute('aria-pressed',k===state.view);b.onclick=()=>setView(k);r.appendChild(b)}}
+@@ -346,3 +375,3 @@ function card(e,sp,isDvm){
+   h+='<button class="head" type="button" aria-expanded="false"><div style="flex:1;min-width:0"><div class="name">'+esc(e.n)+'</div><div class="sub">'+esc(e.cls)+(e.a&&e.a.length?' · '+esc(e.a.slice(0,2).join(', ')):'')+'</div></div>'
+-    +'<div class="badges"><span class="b tier">'+e.tier+(e.sub?e.sub.slice(1):'')+'</span><span class="b rx '+e.rx+'">'+RX[e.rx]+'</span><span class="b ev '+e.ev+'" title="'+esc(EVL[e.ev])+'">Evidence '+e.ev+'</span><span class="b st '+s.s+'">'+SPECIES[sp].l+': '+({ok:'ok',caution:'caution',no:'do not use'}[s.s])+'</span></div></button>';
++    +'<div class="badges">'+(e.tier===7?'<span class="b hum">Human med</span>':'<span class="b tier">'+e.tier+(e.sub?e.sub.slice(1):'')+'</span>')+'<span class="b rx '+e.rx+'">'+RX[e.rx]+'</span><span class="b ev '+e.ev+'" title="'+esc(EVL[e.ev])+'">Evidence '+e.ev+'</span><span class="b st '+s.s+'">'+SPECIES[sp].l+': '+({ok:'ok',caution:'caution',no:'do not use'}[s.s])+'</span></div></button>';
+   let b='<div class="body">';
+@@ -371,2 +400,3 @@ function card(e,sp,isDvm){
+   }
++  if(e.cond&&e.cond.length){const cs=e.cond.map(id=>state.cond.find(c=>c.id===id)).filter(Boolean);if(cs.length)b+='<h4>Related conditions</h4><ul class="lkl">'+cs.map(c=>'<li><span class="lk" data-cond="'+esc(c.id)+'">'+esc(c.n)+'</span></li>').join('')+'</ul>'}
+   if(e.rf)b+='<div class="callout red"><strong>Call a veterinarian now if:</strong> '+esc(e.rf)+'</div>';
+@@ -374,2 +404,3 @@ function card(e,sp,isDvm){
+   d.innerHTML=h+b;
++  d.querySelectorAll('[data-cond]').forEach(x=>x.onclick=()=>openCond(x.dataset.cond));
+   const head=d.querySelector('.head');head.onclick=()=>{const o=d.classList.toggle('open');head.setAttribute('aria-expanded',o)};
+@@ -387,3 +418,3 @@ const SYN=[
+  {k:'wound',l:'Wound / injury'},{k:'lame',l:'Lameness / joint / muscle'},{k:'gi',l:'Vomiting / diarrhea'},{k:'colic',l:'Colic / bloat / not eating',g:['Equine','Ruminant','Companion']},
+- {k:'tox',l:'Ate something toxic'},{k:'resp',l:'Breathing / cough'},{k:'skin',l:'Skin / itch / parasites'},{k:'repro',l:'Birth / egg binding'},{k:'heat',l:'Heat stress'},{k:'urin',l:'Straining to urinate',g:['Companion','Ruminant']},{k:'neuro',l:'Wobbly / seizure / collapse'}];
++ {k:'tox',l:'Ate something toxic'},{k:'resp',l:'Breathing / cough'},{k:'skin',l:'Skin / itch / parasites'},{k:'repro',l:'Birth / egg binding'},{k:'heat',l:'Heat stress'},{k:'urin',l:'Straining to urinate',g:['Companion','Ruminant']},{k:'neuro',l:'Wobbly / seizure / collapse'},{k:'eye',l:'Eye — red, tearing, squinting, cloudy'}];
+ const ONSET=[{k:'now',l:'Under 1 hour'},{k:'today',l:'Today'},{k:'days',l:'Days'},{k:'chronic',l:'Weeks or longer'}];
+@@ -401,3 +432,3 @@ function kbn(...names){return names.map(n=>state.kb.find(e=>e.n.toLowerCase().st
+ function rules(sp,syn,onset){
+-  const g=G(sp),food=FOOD(sp);const P={do:[],dont:[],otc:[],rehab:[],red:[],rx:[],note:[]};
++  const g=G(sp),food=FOOD(sp);const P={do:[],dont:[],otc:[],rehab:[],red:[],rx:[],note:[],cond:[],hum:[]};
+   const add=(k,...x)=>P[k].push(...x);
+@@ -512,2 +543,21 @@ function rules(sp,syn,onset){
+     break;
++  case 'eye':
++    add('do','Look at both eyes in good light and compare: pupil size, cloudiness, redness, and whether one eye looks bigger.','Gently rinse with sterile saline or eyewash if there is debris or discharge.','Prevent rubbing — cone (e-collar) or soft cone now.',isBird||isRum||isHorse?'Keep out of wind, dust, and flies; shade helps.':'Trim hair that touches the eye with blunt-tipped scissors.','Take a clear photo in daylight and note which eye, since when, and the color of any discharge.');
++    add('dont','No steroid-containing eye drops (prednisolone, dexamethasone, Maxitrol, TobraDex) — they can make a corneal ulcer perforate.','No "redness relief" drops (Visine, Clear Eyes).','No leftover drops from another person or pet, and no skin ointments in the eye.',isDog||isCat?'Hold oral diphenhydramine (Benadryl) until dry eye and glaucoma are ruled out — it lowers tear production.':'Do not try to push a bulging eye back in.');
++    add('otc','Saline wound lavage','Artificial tears');
++    add('red','Eye held shut or squinting','Cloudy, bluish, or milky cornea','Pupils of different sizes','Eye bulging or out of the socket','Sudden blindness or bumping into things','Blood inside the eye, or a visible pit on the surface','Eye pain with lethargy or not eating',isHorse?'Any painful eye in a horse — ulcers can turn fungal within days':'Injury, thorn, or foreign body');
++    if(!food)add('hum','Artificial tears','Antihistamine eye drops','Cetirizine / loratadine','Fluoroquinolone eye drops','Triple antibiotic eye ointment','Steroid or steroid-antibiotic eye drops','Redness-relief eye drops','Latanoprost','Atropine 1%');
++    else add('note','Food animal: any human eye medicine is extra-label and needs a VCPR and a FARAD withdrawal. Saline rinse carries none.');
++    if(isCat)add('hum','Famciclovir','L-lysine');
++    add('rx','Fluoroquinolone eye drops','Triple antibiotic eye ointment','Latanoprost','Dorzolamide / dorzolamide-timolol','Atropine 1%','Cyclosporine eye drops',isCat?'Famciclovir':'Meloxicam','Gabapentin');
++    add('cond',...state.cond.filter(c=>c.sys==='Eye'&&c.sp.includes(sp)).sort((a,b)=>'EUSH'.indexOf(a.tri)-'EUSH'.indexOf(b.tri)).map(c=>c.id));
++    add('note','Ask the clinic for three basic tests: Schirmer tear test (tear production), fluorescein stain (corneal ulcer), and tonometry (eye pressure). Together they separate dry eye, ulcer, and glaucoma.');
++    if(onset==='chronic')add('note','Weeks of tearing with no pain usually means hair or eyelid problems, a blocked tear duct, or dry eye — mechanical causes that drops alone will not fix.');
++    if(onset==='now')add('note','A sudden painful eye is an emergency until glaucoma, lens luxation, and a deep ulcer are excluded.');
++    if(isDog)add('note','If an antibiotic drop has not helped in 2-3 days, the cause is probably not bacterial.');
++    if(isRab)add('note','Rabbits: discharge from the inner corner is usually tear-duct infection from overgrown tooth roots — a dental exam is part of the eye exam.');
++    if(isRum)add('note','Cattle: pinkeye (infectious bovine keratoconjunctivitis, Moraxella bovis) spreads by face flies — isolate, fly control, shade; long-acting oxytetracycline is Rx with a meat/milk withdrawal. Cattle, sheep and goat eye condition cards are planned.');
++    if(isBird)add('note','Poultry: a swollen face or eye with bubbles or discharge is usually respiratory disease (mycoplasma, coryza) — see Breathing / cough; isolate the bird.');
++    if(isHorse)add('note','Horses: recurrent uveitis (moon blindness) is the leading cause of equine blindness. Never use steroid drops without a fluorescein stain.');
++    break;
+   default: add('note','Select a problem.');
+@@ -529,2 +579,5 @@ function renderPlan(){
+   else h+='<section class="dvm"><h3>Prescription options exist</h3><p class="note">Your veterinarian has approved drugs for this problem'+(sp==='dog'||sp==='cat'?', including monthly antibody injections for arthritis':'')+'. Switch to Veterinarian view to see them listed.</p></section>';
++  if(r.cond.length){const cs=r.cond.map(id=>state.cond.find(c=>c.id===id)).filter(Boolean);h+='<section><h3>Possible causes — most urgent first (tap to open)</h3><ul>'+cs.map(c=>'<li class="link" data-cond="'+esc(c.id)+'">'+esc(c.n)+' <span class="b tri tri '+c.tri+'">'+TRIS[c.tri]+'</span></li>').join('')+'</ul></section>'}
++  else if(syn==='eye')h+='<section><h3>Possible causes</h3><p class="note">Eye condition cards for '+esc(SPECIES[sp].l)+' are planned. Use the red flags above.</p></section>';
++  if(r.hum.length){const hs=kbn(...r.hum).filter((e,i,a)=>a.indexOf(e)===i);h+='<section><h3>Human medicines you may have at home (tap to open)</h3><ul>'+hs.map(e=>{const s=((e.sp||{})[sp]||{}).s||'caution';return '<li class="link" data-id="'+e.i+'">'+esc(e.n)+' <span class="b st '+s+'">'+({ok:'ok',caution:'caution',no:'do not use'}[s])+'</span></li>'}).join('')+'</ul><p class="note">A human prescription used in an animal is extra-label and needs a veterinarian\'s order.</p></section>'}
+   if(r.note.length)h+='<section><h3>Notes</h3><ul>'+li(r.note)+'</ul></section>';
+@@ -532,5 +585,57 @@ function renderPlan(){
+   P.innerHTML=h;
+-  P.querySelectorAll('li.link').forEach(l=>l.onclick=()=>{tab('ref');state.q='';$('q').value='';state.tiers=new Set([1,2,3,4,5,6]);$('tierRow').querySelectorAll('.tier').forEach(b=>b.setAttribute('aria-pressed','true'));render();const c=$('results').querySelector('[data-id="'+l.dataset.id+'"]');if(c){c.classList.add('open');c.querySelector('.head').setAttribute('aria-expanded','true');c.scrollIntoView({block:'start'})}});
++  P.querySelectorAll('li.link').forEach(l=>l.onclick=()=>{if(l.dataset.cond)openCond(l.dataset.cond);else openKB(l.dataset.id)});
+   $('copyPlan').onclick=()=>{navigator.clipboard.writeText(P.innerText).then(()=>{$('copyPlan').textContent='Copied'}).catch(()=>{$('copyPlan').textContent='Copy failed'})};
+ }
++/* ---------- conditions ---------- */
++function openKB(id){if(state.view!=='all')setView('all');tab('ref');state.q='';$('q').value='';state.tiers=new Set([1,2,3,4,5,6,7]);buildTiers();render();const c=$('results').querySelector('[data-id="'+id+'"]');if(c){c.classList.add('open');c.querySelector('.head').setAttribute('aria-expanded','true');c.scrollIntoView({block:'start'})}}
++function openCond(id){const c=state.cond.find(x=>x.id===id);if(!c)return;if(!c.sp.includes(state.species)){state.species=c.sp[0];if(state.view!=='all')setView('all');else{buildRail();render();renderPlan()}}tab('cond');state.cq='';$('condQ').value='';state.csys='all';buildCondSys();renderCond();const el=$('condResults').querySelector('[data-cond-id="'+id+'"]');if(el){el.classList.add('open');el.querySelector('.head').setAttribute('aria-expanded','true');el.scrollIntoView({block:'start'})}}
++function buildCondSys(){const r=$('condSys');r.innerHTML='';const sys=['all',...new Set(state.cond.map(c=>c.sys))];for(const s of sys){const b=document.createElement('button');b.type='button';b.className='opt';b.textContent=s==='all'?'All systems':s;b.setAttribute('aria-pressed',state.csys===s);b.onclick=()=>{state.csys=s;buildCondSys();renderCond()};r.appendChild(b)}}
++$('condQ').addEventListener('input',e=>{state.cq=e.target.value.trim().toLowerCase();renderCond()});
++function allBreeds(c){return Object.values(c.breeds||{}).flat()}
++function cscore(c,q){if(!q)return 1;const toks=q.split(/\s+/).filter(Boolean);const hay=[c.n,c.what,c.sys,...(c.a||[]),...(c.signs||[]),...allBreeds(c)].join(' ').toLowerCase();let s=0;
++  for(const t of toks){if(c.n.toLowerCase().includes(t))s+=5;else if((c.a||[]).some(x=>x.toLowerCase().includes(t)))s+=4;else if(allBreeds(c).some(x=>x.toLowerCase().includes(t)))s+=3;else if(hay.includes(t))s+=1;else return 0}return s}
++function breedHits(c,q,sp){if(!q)return[];const b=(c.breeds||{})[sp]||[];return b.filter(x=>x.toLowerCase().includes(q))}
++function renderCond(){
++  const sp=state.species;const q=state.cq;const R=$('condResults');if(!R)return;
++  let list=state.cond.filter(c=>(state.csys==='all'||c.sys===state.csys)&&c.sp.includes(sp)).map(c=>({c,s:cscore(c,q)})).filter(x=>x.s>0);
++  list.sort((a,b)=>b.s-a.s||'EUSH'.indexOf(a.c.tri)-'EUSH'.indexOf(b.c.tri)||a.c.n.localeCompare(b.c.n));
++  $('condHint').textContent=list.length+' conditions for '+SPECIES[sp].l+' · '+(state.mode==='dvm'?'Veterinarian view':'Owner view')+' · pilot: eye';
++  R.innerHTML='';
++  if(!list.length){R.innerHTML='<div class="empty">'+(state.cond.some(c=>c.sp.includes(sp))?'No matches. Try a sign (tearing, cloudy) or a breed.':'Condition cards for '+esc(SPECIES[sp].l)+' are planned for a later release. Decision support and the Reference tab cover this species now.')+'</div>';return}
++  for(const {c} of list)R.appendChild(condCard(c,sp,state.mode==='dvm',q));
++}
++function condCard(c,sp,isDvm,q){
++  const d=document.createElement('article');d.className='card';d.dataset.condId=c.id;
++  const ul=a=>'<ul>'+a.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>';
++  let h='<div class="tri '+c.tri+'">'+esc(TRI[c.tri])+'</div>';
++  h+='<button class="head" type="button" aria-expanded="false"><div style="flex:1;min-width:0"><div class="name">'+esc(c.n)+'</div><div class="sub">'+esc(c.sys)+' · '+esc(c.sp.map(k=>SPECIES[k].l).join(', '))+'</div></div><div class="badges"><span class="b tri tri '+c.tri+'">'+TRIS[c.tri]+'</span>'+(c.zoo?'<span class="b zoo">Zoonotic</span>':'')+(c.reg?'<span class="b reg">Texas</span>':'')+'</div></button>';
++  let b='<div class="body">';
++  const bh=breedHits(c,q,sp);if(bh.length)b+='<div class="breedHit"><strong>Breed at risk:</strong> '+esc(bh.join(', '))+'</div>';
++  b+='<h4>What it is</h4><p>'+esc(c.what)+'</p>';
++  if(c.up)b+='<p class="note"><span class="warnline">Escalate:</span> '+esc(c.up)+'</p>';
++  if(c.spn&&c.spn[sp])b+='<h4>For '+esc(SPECIES[sp].l)+'</h4><p>'+esc(c.spn[sp])+'</p>';
++  b+='<h4>Signs</h4>'+ul(c.signs||[]);
++  const br=(c.breeds||{})[sp];if(br&&br.length)b+='<h4>At-risk breeds / groups</h4><p>'+esc(br.join(' · '))+'</p>';
++  if(c.reg)b+='<h4>Texas</h4><p>'+esc(c.reg)+'</p>';
++  b+='<h4>What to do</h4>'+ul(c.home||[]);
++  if(c.dont&&c.dont.length)b+='<h4>Do not</h4>'+ul(c.dont);
++  const hs=kbn(...(c.hum||[])).filter((e,i,a)=>a.indexOf(e)===i);
++  if(hs.length)b+='<h4>Human medicines at home</h4><ul class="lkl">'+hs.map(e=>{const s=((e.sp||{})[sp]||{}).s||'caution';return '<li><span class="lk" data-kb="'+e.i+'">'+esc(e.n)+'</span> <span class="b st '+s+'">'+({ok:'ok',caution:'caution',no:'do not use'}[s])+'</span></li>'}).join('')+'</ul>';
++  if(isDvm){
++    if(c.dx&&c.dx.length)b+='<h4>Diagnostics</h4>'+ul(c.dx);
++    if(c.tx)b+='<h4>Treatment direction</h4><p>'+esc(c.tx)+'</p>';
++    const rx=kbn(...(c.rx||[])).filter((e,i,a)=>a.indexOf(e)===i);
++    if(rx.length)b+='<h4>Related KB entries</h4><ul class="lkl">'+rx.map(e=>'<li><span class="lk" data-kb="'+e.i+'">'+esc(e.n)+'</span></li>').join('')+'</ul>';
++  }else b+='<p class="note">Switch to Veterinarian view for diagnostics and treatment direction.</p>';
++  const see=(c.see||[]).map(id=>state.cond.find(x=>x.id===id)).filter(x=>x&&x.sp.includes(sp));
++  if(see.length)b+='<h4>Also consider</h4><ul class="lkl">'+see.map(x=>'<li><span class="lk" data-cond="'+esc(x.id)+'">'+esc(x.n)+'</span></li>').join('')+'</ul>';
++  if(c.refs&&c.refs.length)b+='<h4>References</h4><p class="refs">'+c.refs.map(esc).join('<br>')+'</p>';
++  if(c.rf&&c.rf.length)b+='<div class="callout red"><strong>Call a veterinarian now if:</strong> '+esc(c.rf.join('; '))+'</div>';
++  b+='</div>';
++  d.innerHTML=h+b;
++  const head=d.querySelector('.head');head.onclick=()=>{const o=d.classList.toggle('open');head.setAttribute('aria-expanded',o)};
++  d.querySelectorAll('[data-kb]').forEach(x=>x.onclick=()=>openKB(x.dataset.kb));
++  d.querySelectorAll('[data-cond]').forEach(x=>x.onclick=()=>openCond(x.dataset.cond));
++  return d;
++}
+ boot();
