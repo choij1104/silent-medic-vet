@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<!--
+SILENT MEDIC VET — version history
+v0.1.9  2026-09-20  Decision support: lameness plan for dog and horse now lists a 'Rehabilitation, manual and integrative therapy' section (PT, acupuncture, OMT, chiropractic, holistic, laser/PEMF/shockwave). Tier 5: holistic / integrative veterinary medicine card (dog and horse, 2 PMIDs). Rehab view no longer persists in the URL — app always starts on All. KB 80 -> 81.
+v0.1.8  2026-09-20  PWA: manifest, service worker (cache-first, version-stamped), icons, install button. Installable on iOS/Android/desktop; runs offline after first visit.
+v0.1.7  2026-09-20  Visual redesign in the SILENT MEDIC family style: cobalt header and footer, white panels, high-contrast bold type, monospace for doses and status, blue primary controls. Layout classes only; no logic or content change.
+v0.1.6  2026-09-20  v0.2 batch 1: albendazole, levamisole, morantel, moxidectin, decoquinate (labels verified on DailyMed). KB 75 -> 80.
+v0.1.5  2026-09-20  Acupuncture card: Texas 573.16 (2026) regulatory text and 2 verified PMIDs; new DVM reference card 'Alternate therapies — Texas law'. KB 74 -> 75.
+v0.1.4  2026-09-20  Views: 'Rehab & Manual Therapy' preset (dog and horse, tiers 4+6, deep link #view=rehab). Additive; 'All' restores everything.
+v0.1.3  2026-09-20  Tier 6: osteopathic manipulative treatment (dog/horse) and physical therapy / rehabilitation (dog/horse) cards, 8 verified PMIDs. KB 72 -> 74.
+v0.1.2  2026-09-14  Touch targets: chips, tier filters, mode switch, decision-support options, weight input raised to 44 px min-height.
+v0.1.2  2026-09-07  8 prescribing/dispensing reference cards (VCPR, Rx elements, dispensed label, AMDUCA, controlled substances, GFI #256 compounding, VFD/GFI #263, Rx portability). KB 64 -> 72.
+v0.1.1  2026-09-07  Withdrawal completeness rule: 211 food-animal cells filled (FARAD / per label / n-a). No dose changes.
+v0.1.0  2026-09-06  Initial seed: 64 entries, 13 species, 6 tiers, 11 problem flows, SHA-256 KB integrity.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<meta name="theme-color" content="#0d47a1">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SILENT MEDIC VET">
+<meta name="description" content="Offline veterinary decision support for owners and veterinarians. Six treatment tiers — OTC to manual therapy — graded by evidence, species safety, withdrawal, and regulatory status. No network calls.">
+<title>SILENT MEDIC VET v0.2.0 — Offline Veterinary Decision Support</title>
+<style>
+:root{
+  --bg:#f4f6f9; --panel:#ffffff; --panel-2:#f8fafc; --panel-3:#eef2f7;
+  --text:#1c2e3e; --text-2:#3a5a78; --text-3:#4f6d86;
+  --border:#c2cede; --border-2:#8ba5bd; --border-3:#d3dcea;
+  --blue:#0f57ab; --blue-dark:#0d47a1; --blue-bg:#e3f0ff; --blue-dim:#bbd6f8;
+  --green:#186334; --green-bg:#e8f5ee; --orange:#9c4600; --orange-bg:#fff3e0; --red:#b41f1f; --red-bg:#fdecea; --purple:#5200a8; --purple-bg:#f0e8ff; --teal:#005c50; --teal-bg:#e0f4f1;
+  /* semantic aliases used by the markup */
+  --surface:var(--panel); --ink:var(--text); --ink-2:var(--text-2); --ink-3:var(--text-3); --line:var(--border); --line-2:var(--border-3);
+  --accent:var(--blue); --accent-ink:#fff; --band:var(--red); --ok:var(--green); --caution:var(--orange); --no:var(--red); --grey:#5b6b7a;
+  --r:6px; --maxw:860px;
+  --font:'Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,'Helvetica Neue',Arial,sans-serif;
+  --mono:Consolas,'Courier New',ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 var(--font);-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--blue)}
+h1,h2,h3,h4{margin:0;font-weight:700;line-height:1.25}
+.pad{padding-left:max(16px,calc((100% - var(--maxw))/2));padding-right:max(16px,calc((100% - var(--maxw))/2))}
+
+/* boot */
+#boot{position:fixed;inset:0;background:var(--blue-dark);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:50;padding:24px;text-align:center}
+#boot h1{font-size:28px;letter-spacing:.04em;font-weight:800}
+#boot h1 small{display:block;font-size:14px;font-weight:500;color:#bbd6f8;margin-top:8px;letter-spacing:.02em}
+#bootLog{font-family:var(--mono);font-size:13px;color:#dbe8fb;margin-top:24px;min-height:120px;width:min(440px,100%);text-align:left}
+#bootLog div{padding:3px 0}
+#bootLog .ok{color:#8fe3ae}#bootLog .warn{color:#ffd27a}#bootLog .err{color:#ff9d93}
+#bootBarWrap{width:min(440px,100%);height:5px;background:#0a3a85;border-radius:3px;margin-top:12px;overflow:hidden}
+#bootBar{height:100%;width:0;background:#8fe3ae;transition:width .25s}
+#bootBtn{margin-top:28px;background:#fff;color:var(--blue-dark);border:0;border-radius:var(--r);padding:13px 30px;font-weight:800;font-size:16px;display:none;min-height:48px;letter-spacing:.02em}
+#bootBtn:focus-visible{outline:3px solid #8fe3ae;outline-offset:2px}
+
+/* header — SILENT MEDIC family bar */
+header{position:sticky;top:0;z-index:20;background:var(--blue-dark);color:#fff;display:flex;align-items:center;gap:10px;flex-wrap:nowrap;min-height:56px;padding-top:0;padding-bottom:0}
+header .brand{font-weight:800;font-size:17px;letter-spacing:.05em;white-space:nowrap;display:block;flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
+header .brand::before{content:"SMV";display:inline-block;vertical-align:2px;margin-right:8px;font-size:11px;font-weight:800;background:#fff;color:var(--blue-dark);border-radius:4px;padding:3px 5px;letter-spacing:0}
+header .brand small{font-family:var(--mono);font-weight:500;color:#bbd6f8;margin-left:2px;font-size:12px;letter-spacing:0}
+@media (max-width:480px){header .brand small{display:none}header .brand{font-size:14px;letter-spacing:.02em}.modeSwitch button{padding:6px 10px;font-size:13px}}
+.modeSwitch{margin-left:auto;flex:none;display:flex;border:1px solid #6f97d6;border-radius:var(--r);overflow:hidden;background:#0a3a85}
+.modeSwitch button{background:transparent;color:#dbe8fb;border:0;padding:6px 12px;font-weight:700;font-size:13.5px;min-height:44px}
+.modeSwitch button[aria-pressed="true"]{background:#fff;color:var(--blue-dark)}
+.modeSwitch button:focus-visible{outline:2px solid #8fe3ae;outline-offset:-2px}
+
+/* rail */
+.rail{background:var(--panel);border-bottom:1px solid var(--border);padding-top:12px;padding-bottom:12px;position:sticky;top:56px;z-index:19;box-shadow:0 2px 6px rgba(28,46,62,.06)}
+.viewRow{display:flex;gap:6px;margin:0 0 10px}
+.view{border:1px solid var(--border);background:var(--panel);color:var(--text-2);border-radius:var(--r);padding:6px 14px;font-size:14px;font-weight:700;min-height:44px;min-width:44px}
+.view[aria-pressed="true"]{background:var(--blue);color:#fff;border-color:var(--blue)}
+.view:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.viewNote{margin:0 0 10px;font-size:13px;color:var(--text-2)}
+.railRow{display:flex;gap:18px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.railRow::-webkit-scrollbar{display:none}
+.group{display:flex;flex-direction:column;gap:6px;flex:none}
+.group h4{font-size:11px;font-weight:800;color:var(--text-3);letter-spacing:.08em;text-transform:uppercase}
+.group .chips{display:flex;gap:6px}
+.chip{border:1px solid var(--border);background:var(--panel);border-radius:var(--r);padding:7px 14px;font-size:15px;font-weight:600;line-height:1;white-space:nowrap;min-height:44px;color:var(--text)}
+.chip[aria-pressed="true"]{background:var(--blue);color:#fff;border-color:var(--blue)}
+.chip:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.chip.food::after{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#f5a623;margin-left:7px;vertical-align:middle}
+.railMeta{display:flex;align-items:center;gap:12px;margin-top:10px;font-size:14px;color:var(--text-2);flex-wrap:wrap}
+.railMeta label{display:flex;align-items:center;gap:6px;font-weight:600}
+.railMeta input{width:88px;padding:6px 10px;border:1px solid var(--border);border-radius:var(--r);background:var(--panel);font-family:var(--mono);font-size:15px}
+.foodNote{color:var(--orange);font-weight:600}
+.foodNote::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#f5a623;margin-right:6px}
+
+/* tabs */
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--panel);overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{background:transparent;border:0;border-bottom:3px solid transparent;padding:12px 2px 10px;margin-right:20px;font-weight:700;font-size:15px;color:var(--text-3);min-height:46px;white-space:nowrap;flex:none}
+.tabs button[aria-selected="true"]{color:var(--blue);border-bottom-color:var(--blue)}
+.tabs button:focus-visible{outline:2px solid var(--blue);outline-offset:-2px}
+.panel{display:none;padding-top:16px;padding-bottom:16px}
+.panel.active{display:block}
+
+/* search + tiers */
+.search{display:flex;gap:8px}
+.search input{flex:1;padding:12px 14px;border:2px solid var(--blue);border-radius:var(--r);background:var(--panel);font-size:17px}
+.search input:focus-visible{outline:3px solid var(--blue-dim)}
+.tierRow{display:flex;gap:6px;margin:12px 0 6px;flex-wrap:wrap}
+.tierRow .tier{border:1px solid var(--border);background:var(--panel);color:var(--text-2);border-radius:var(--r);padding:6px 12px;font-size:14px;font-weight:600;line-height:1.2;min-height:44px}
+.tierRow .tier[aria-pressed="true"]{background:var(--blue-bg);color:var(--blue-dark);border-color:var(--blue)}
+.tierRow .tier:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.hint{font-family:var(--mono);font-size:13px;color:var(--text-3);margin:8px 0 12px}
+
+/* results */
+.results{display:flex;flex-direction:column;gap:10px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.card.open{border-color:var(--blue);box-shadow:0 2px 10px rgba(15,87,171,.12)}
+.card>.head{width:100%;text-align:left;background:transparent;border:0;padding:14px;display:flex;gap:12px;align-items:flex-start}
+.card>.head:focus-visible{outline:2px solid var(--blue);outline-offset:-2px}
+.card .name{font-weight:800;font-size:18px;color:var(--text)}
+.card .sub{font-size:14px;color:var(--text-2);margin-top:3px}
+.badges{display:flex;gap:6px;flex:none;align-items:flex-start;align-content:flex-start;flex-wrap:wrap;justify-content:flex-end;max-width:46%}
+.b{font-size:12px;font-weight:800;border-radius:4px;padding:4px 8px;line-height:1.2;white-space:nowrap;letter-spacing:.02em}
+.b.tier{display:inline-block;min-height:0;background:var(--panel-3);color:var(--text-2);border:1px solid var(--border);font-family:var(--mono)}
+.b.ev{color:#fff}
+.b.ev.A{background:var(--green)}.b.ev.B{background:var(--blue)}.b.ev.C{background:var(--orange)}.b.ev.D{background:var(--grey)}.b.ev.X{background:var(--red)}
+.b.st{border:1.5px solid currentColor;background:#fff}
+.b.st.ok{color:var(--green);background:var(--green-bg)}.b.st.caution{color:var(--orange);background:var(--orange-bg)}.b.st.no{color:var(--red);background:var(--red-bg)}
+.b.rx{background:var(--blue-bg);color:var(--blue-dark)}.b.rx.otc{background:var(--green-bg);color:var(--green)}.b.rx.unapproved{background:var(--red-bg);color:var(--red)}.b.rx.supp{background:var(--orange-bg);color:var(--orange)}.b.rx.proc{background:var(--purple-bg);color:var(--purple)}
+.band{background:var(--red);color:#fff;font-weight:800;padding:9px 14px;font-size:14px;letter-spacing:.02em}
+.body{display:none;padding:0 14px 16px;border-top:1px solid var(--border-3)}
+.card.open .body{display:block}
+.body h4{font-size:12px;color:var(--blue-dark);margin:16px 0 5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.body h4:first-child{margin-top:14px}
+.body p,.body li{font-size:15.5px}
+.body ul{margin:0;padding-left:18px}
+.spline{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:15px;margin-top:4px}
+.spline .k{color:var(--text-3);font-weight:600;font-size:13px;padding-top:2px}
+.dose{background:var(--blue-bg);border:1px solid var(--blue-dim);border-left:4px solid var(--blue);padding:10px 12px;border-radius:0 var(--r) var(--r) 0;margin:8px 0;font-size:15px;font-family:var(--mono)}
+.dose strong{font-family:var(--font)}
+.dose.rxonly{border-left-color:var(--orange);background:var(--orange-bg);border-color:#f3d4ad}
+.warnline{color:var(--red);font-weight:800}
+.callout{border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;margin-top:12px;font-size:15px;background:var(--panel-2)}
+.callout.red{border-color:var(--red);background:var(--red-bg);border-left-width:4px}
+.callout.red strong{color:var(--red)}
+.refs{font-size:13px;color:var(--text-2);line-height:1.5}
+.empty{padding:32px 10px;text-align:center;color:var(--text-3);font-size:15px}
+
+/* decision support */
+.ds fieldset{border:1px solid var(--border);border-radius:var(--r);background:var(--panel);padding:10px 12px 12px;margin:0 0 12px}
+.ds legend{font-weight:800;font-size:12px;padding:0 6px;color:var(--blue-dark);letter-spacing:.08em;text-transform:uppercase}
+.opts{display:flex;flex-wrap:wrap;gap:6px}
+.opt{border:1px solid var(--border);background:var(--panel);border-radius:var(--r);padding:8px 13px;font-size:15px;font-weight:600;line-height:1.2;min-height:44px}
+.opt[aria-pressed="true"]{background:var(--blue);color:#fff;border-color:var(--blue)}
+.opt:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+button.primary{width:100%;background:var(--blue);color:#fff;border:0;border-radius:var(--r);padding:13px;font-weight:800;font-size:16px;min-height:48px;letter-spacing:.02em}
+button.primary:focus-visible{outline:3px solid var(--blue-dim);outline-offset:2px}
+.plan{margin-top:16px}
+.plan section{background:var(--panel);border:1px solid var(--border);border-left-width:4px;border-left-color:var(--border-2);border-radius:var(--r);padding:12px 14px;margin-bottom:10px}
+.plan h3{font-size:16px;font-weight:800;margin-bottom:6px}
+.plan section.red{border-left-color:var(--red);background:var(--red-bg)}
+.plan section.red h3{color:var(--red)}
+.plan section.dvm{border-left-color:var(--blue);background:var(--blue-bg)}
+.plan section.dvm h3{color:var(--blue-dark)}
+.plan ol,.plan ul{margin:0;padding-left:20px}
+.plan li{margin:4px 0;font-size:15.5px}
+.plan li.link{cursor:pointer;color:var(--blue);text-decoration:underline;text-underline-offset:2px;font-weight:600}
+.plan .note{font-size:13.5px;color:var(--text-2);margin-top:8px}
+.copyRow{display:flex;gap:8px;margin-top:8px}
+.copyRow button{flex:1;border:1px solid var(--blue);background:var(--panel);color:var(--blue-dark);border-radius:var(--r);padding:11px;font-weight:700;min-height:44px}
+
+footer{background:var(--blue-dark);color:#dbe8fb;padding-top:18px;padding-bottom:40px;font-size:13px;margin-top:24px;line-height:1.6}
+footer p{margin-bottom:6px}
+footer strong{color:#fff}
+
+.tri{font-weight:800;padding:9px 14px;font-size:14px;letter-spacing:.02em;color:#fff}
+.tri.E{background:var(--red)}.tri.U{background:var(--orange)}.tri.S{background:var(--blue)}.tri.H{background:var(--green)}
+.b.tri{padding:4px 8px;font-size:12px}
+.b.zoo{background:var(--purple-bg);color:var(--purple)}.b.reg{background:var(--teal-bg);color:var(--teal)}
+.b.hum{background:var(--teal-bg);color:var(--teal);font-family:var(--mono)}
+.condFilter{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 6px}
+.triLegend{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 4px}
+.triLegend span{font-size:12px;font-weight:700;border-radius:4px;padding:3px 7px;color:#fff}
+.breedHit{background:var(--orange-bg);border:1px solid #f3d4ad;border-radius:var(--r);padding:8px 10px;margin-top:12px;font-size:14.5px}
+.body a.lk,.body .lk{color:var(--blue);text-decoration:underline;text-underline-offset:2px;font-weight:600;cursor:pointer}
+.body ul.lkl{list-style:none;padding-left:0}.body ul.lkl li{margin:5px 0}
+@media (min-width:900px){
+  .panel.active#condPanel{display:grid;grid-template-columns:320px 1fr;gap:24px;align-items:start;padding-left:max(16px,calc((100% - 1100px)/2));padding-right:max(16px,calc((100% - 1100px)/2))}
+  #condPanel .left{position:sticky;top:150px}
+  .panel.active#refPanel{display:grid;grid-template-columns:320px 1fr;gap:24px;align-items:start;padding-left:max(16px,calc((100% - 1100px)/2));padding-right:max(16px,calc((100% - 1100px)/2))}
+  #refPanel .left{position:sticky;top:150px}
+  .results{max-height:calc(100vh - 220px);overflow:auto;padding-right:2px}
+  .badges{max-width:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div id="boot" role="status" aria-live="polite">
+  <h1>SILENT MEDIC VET<small>Offline veterinary decision support · v0.2.0</small></h1>
+  <div id="bootLog"></div>
+  <div id="bootBarWrap"><div id="bootBar"></div></div>
+  <button id="bootBtn" type="button">Open</button>
+</div>
+
+<header class="pad">
+  <div class="brand">SILENT MEDIC VET<small>v0.2.0</small></div>
+  <div class="modeSwitch" role="group" aria-label="User mode">
+    <button type="button" id="modeOwner" aria-pressed="true">Owner</button>
+    <button type="button" id="modeDvm" aria-pressed="false">Veterinarian</button>
+  </div>
+</header>
+
+<div class="rail pad">
+  <div class="viewRow" id="viewRow" role="group" aria-label="View"></div>
+  <p class="viewNote" id="viewNote" hidden></p>
+  <div class="railRow" id="railRow" role="group" aria-label="Species"></div>
+  <div class="railMeta">
+    <label>Weight <input type="number" id="weight" min="0.05" step="0.1" inputmode="decimal" placeholder="kg" style="min-height:44px"> kg</label>
+    <span id="foodNote" class="foodNote" hidden>Food-producing species — withdrawal times apply</span>
+  </div>
+</div>
+
+<div class="tabs pad" role="tablist">
+  <button role="tab" id="tabRef" aria-selected="true" aria-controls="refPanel">Reference</button>
+  <button role="tab" id="tabCond" aria-selected="false" aria-controls="condPanel">Conditions</button>
+  <button role="tab" id="tabDs" aria-selected="false" aria-controls="dsPanel">Decision support</button>
+</div>
+
+<div class="panel pad active" id="refPanel" role="tabpanel">
+  <div class="left">
+    <div class="search">
+      <input type="search" id="q" placeholder="Drug, supplement, problem… e.g. lameness, mites, Librela" aria-label="Search">
+    </div>
+    <div class="tierRow" id="tierRow" role="group" aria-label="Treatment tiers"></div>
+    <p class="hint" id="hint"></p>
+  </div>
+  <div class="results" id="results"></div>
+</div>
+
+<div class="panel pad" id="condPanel" role="tabpanel">
+  <div class="left">
+    <div class="search">
+      <input type="search" id="condQ" placeholder="Condition, sign, or breed… e.g. glaucoma, tearing, Shih Tzu" aria-label="Search conditions">
+    </div>
+    <div class="condFilter" id="condSys" role="group" aria-label="Body system"></div>
+    <div class="triLegend" aria-label="Triage legend"><span style="background:var(--red)">Emergency</span><span style="background:var(--orange)">24 h</span><span style="background:var(--blue)">Book a visit</span><span style="background:var(--green)">Home care</span></div>
+    <p class="hint" id="condHint"></p>
+  </div>
+  <div class="results" id="condResults"></div>
+</div>
+
+<div class="panel pad ds" id="dsPanel" role="tabpanel">
+  <fieldset><legend>Problem</legend><div class="opts" id="dsSyn"></div></fieldset>
+  <fieldset><legend>Started</legend><div class="opts" id="dsOnset"></div></fieldset>
+  <fieldset><legend>What you have</legend><div class="opts" id="dsRes"></div></fieldset>
+  <button type="button" class="primary" id="dsGo">Build plan</button>
+  <div class="plan" id="plan"></div>
+</div>
+
+<footer class="pad">
+  <button type="button" id="installBtn" class="copyRow-btn" hidden style="width:100%;margin-bottom:12px;background:#fff;color:var(--blue-dark);border:0;border-radius:var(--r);padding:12px;font-weight:800;min-height:48px">Install SILENT MEDIC VET on this device</button>
+  <p>Installable app: add to home screen (iPhone: Share → Add to Home Screen; Android/desktop Chrome: Install). Works fully offline after the first visit.</p>
+  <p><strong>SILENT MEDIC VET v0.2.0</strong> · build 2026-09-25 · knowledge base 94 entries across 6 treatment tiers plus human medicines at home · 12 conditions · 13 species.</p>
+  <p>All inference is local. No data leaves this device. Doses shown in Veterinarian mode are reference values from published formularies and labels; verify against current labels, Plumb's, and FARAD before use. Extra-label use in food animals requires a valid VCPR and a FARAD-derived withdrawal.</p>
+  <p>Unapproved peptides (Tier 3C) are summarized for reference only and are not recommended by this tool. Tier 7 lists human medicines an owner may already have; using a human prescription product in an animal is extra-label and requires a veterinarian's order.</p>
+  <p>© 2026 Jae H. Choi, MSc, PhD, DVSc · Auravyx Systems · Prototype — not a substitute for a licensed veterinarian.</p>
+</footer>
+
+<script id="kbData" type="application/octet-stream">
