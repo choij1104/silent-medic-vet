@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.2.0 — 2026-09-24
+- **Conditions tab (new).** Disease cards with a triage band (Emergency / 24 h / Book a visit / Home care), escalation signs, species-specific notes, at-risk breeds, owner actions, do-nots, human medicines at home, and — in Veterinarian view — diagnostics, treatment direction, and linked KB entries. Zoonosis and Texas badges. Ophthalmic pilot: 12 conditions (corneal ulcer/SCCED, KCS, glaucoma, uveitis, conjunctivitis, eyelid/hair disorders, cherry eye, FHV-1, cataract vs nuclear sclerosis, proptosis, lens luxation, epiphora). Species: dog and cat; rabbit and horse where applicable.
+- **Breed search.** Typing a breed in Conditions (e.g. Shih Tzu) lists the conditions it is predisposed to and flags the match inside the card.
+- **Tier 7 — Human medicines at home (new).** 13 cross-reference cards for human products an owner may already have, graded per species ok / caution / do not use: artificial tears, redness-relief drops (do not use), ketotifen/olopatadine drops, fluoroquinolone drops, triple antibiotic ophthalmic (feline anaphylaxis), steroid drops, latanoprost, dorzolamide/timolol, atropine, cyclosporine, famciclovir, L-lysine (not effective), cetirizine/loratadine (never '-D'). Formulation traps and AMDUCA extra-label note on each. KB 81 -> 94.
+- **Decision support: Eye flow (new, 12th problem).** Red flags, do/do-not, three-test prompt (STT, fluorescein, IOP), onset-specific notes, possible causes ordered by urgency (tap to open the condition), human medicines at home with species status, species notes for rabbit, horse, cattle (pinkeye), and poultry.
+- Two-way links: condition -> human medicine / KB entry; human medicine -> related conditions; plan -> condition.
+- Knowledge payload is now {kb, cond} under the same gzip+base64 SHA-256 integrity check; build.py validates every cross-link before writing index.html.
+- References added (PubMed-verified): PMIDs 21906985, 26573523, 14982589, 7768741, 27556267, 27463546, 25542064, 22520040.
+- Nothing removed: all 81 prior entries, 11 problem flows, both views, and every species/tier are unchanged. kb.py is untouched (tier 7 is appended by build.py). v0.1.9 sources are preserved in git history (commit 460c436).
+- template.html changes ship as tools/template_v020.diff (git apply, verified byte-identical); .github/workflows/build.yml applies pending diffs, runs build.py, and commits template.html, index.html and sw.js.
+
 ## v0.1.9 — 2026-09-20
 - Decision support: the Lameness / joint / muscle plan for dog and horse now includes a 'Rehabilitation, manual and integrative therapy' section linking the physical therapy, acupuncture, OMT, chiropractic, holistic and laser/PEMF/shockwave cards, with the Texas 573.14/573.16 note.
 - Tier 5: Holistic / integrative veterinary medicine — dog and horse (framework card; evidence C overall, modality grades referenced; Texas 573.16 veterinarian-only and acknowledgment; PMIDs 27200270, 25576265). KB 80 -> 81.
