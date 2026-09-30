@@ -25,4 +25,4 @@ GitHub Pages: push `index.html` to `main`, enable Pages (root).
 ## Disclaimer
 Prototype. Doses are reference values from labels and published formularies; verify against current labels, Plumb's, and FARAD. Not a substitute for a licensed veterinarian. Tier 3C substances are not recommended by this tool.
 
-© 2026 HAKOYA LLC dba Auravyx Systems
+© 2026 HAKOYA LLC
