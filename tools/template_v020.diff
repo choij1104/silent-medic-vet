@@ -51,7 +51,7 @@
    <p>All inference is local. No data leaves this device. Doses shown in Veterinarian mode are reference values from published formularies and labels; verify against current labels, Plumb's, and FARAD before use. Extra-label use in food animals requires a valid VCPR and a FARAD-derived withdrawal.</p>
 -  <p>Unapproved peptides (Tier 3C) are summarized for reference only and are not recommended by this tool.</p>
 +  <p>Unapproved peptides (Tier 3C) are summarized for reference only and are not recommended by this tool. Tier 7 lists human medicines an owner may already have; using a human prescription product in an animal is extra-label and requires a veterinarian's order.</p>
-   <p>© 2026 Jae H. Choi, MSc, PhD, DVSc · Auravyx Systems · Prototype — not a substitute for a licensed veterinarian.</p>
+   <p>© 2026 HAKOYA LLC dba Auravyx Systems · Prototype — not a substitute for a licensed veterinarian.</p>
 @@ -258,8 +285,10 @@ const SPECIES={
  };
 -const TIERS={1:'OTC drug',2:'Rx drug',3:'Peptide / biologic',4:'Nutraceutical',5:'Herbal / TCVM',6:'Manual / physical'};
