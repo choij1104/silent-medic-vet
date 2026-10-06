@@ -13,7 +13,7 @@ The App Store build differs from the web build in four ways:
      several are competition-banned in horses. The web build keeps them.
   2. No weight-based dose computation (Guideline 1.4.2). The weight field is removed and calc()
      returns nothing, so every dose is shown only as its reference source states it.
-  3. No "Prototype" wording and no PWA install instructions.
+  3. No "Prototype" or "pilot" wording and no PWA install instructions.
   4. Text that pointed to the Tier 3C cards is reworded.
 
 The knowledge base is re-encoded exactly as build.py does it (gzip + base64, SHA-256 of the JSON
@@ -85,6 +85,7 @@ t = sub1("CBD, and all Tier 3C peptides are prohibited or controlled",
 t = sub1(r"BPC-157 / TB-500 have no controlled data in any animal and are competition-banned[^']*",
          "Unapproved research peptides have no controlled data in any animal and are competition-banned.",
          t, "peptide note", regex=True)
+t = sub1("+' · pilot: eye';", ";", t, "conditions pilot label")
 t = sub1('<meta charset="utf-8">', '<meta charset="utf-8">\n<meta name="smv-build" content="store">',
          t, "charset meta")
 
