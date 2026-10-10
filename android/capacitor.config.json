@@ -1,0 +1,9 @@
+{
+  "appId": "com.hakoya.silentmedicvet",
+  "appName": "Silent Medic Vet",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#0d47a1",
+    "allowMixedContent": false
+  }
+}

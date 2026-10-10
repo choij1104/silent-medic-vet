@@ -1,0 +1,13 @@
+{
+  "name": "silent-medic-vet-android",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Google Play build of SILENT MEDIC VET, wrapped with Capacitor. Uses the same web bundle as the App Store build (ios/www).",
+  "dependencies": {
+    "@capacitor/android": "8.5.3",
+    "@capacitor/core": "8.5.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.3"
+  }
+}
