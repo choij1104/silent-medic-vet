@@ -1,0 +1,32 @@
+Silent Medic Vet 1.1 — notes for App Review
+
+Thank you for the review of 1.0 (Guidelines 4.3(a)/(b) and 4.2.6). Version 1.1 is a substantial rework: the app now has its own native iPhone features, its own design and icon, and its own navigation. No reviewer account or network is needed; the app makes no network connections.
+
+WHAT IS NEW AND NATIVE IN 1.1
+1. Patients tab (Swift plugin PatientChartPlugin): on-device animal profiles (name or tag, species, a weight the user noted, notes, dated observation log), stored in a Data Protection file in the app's Application Support folder. "Chart this animal" sets the species throughout the app. A noted weight is a record only; the app never calculates a dose from it.
+2. Recheck reminders (RecheckPlugin, UserNotifications): local notifications per patient. Tapping one opens that patient. No push, no server.
+3. Spotlight (KnowledgeIndexPlugin, CoreSpotlight): every reference entry and condition card is indexed on the device; a Spotlight result opens that card in the app.
+4. Siri and Shortcuts (App Intents on iOS 16+, App Shortcuts with Siri phrases on iOS 17+): "Look up a drug for my dog in Silent Medic Vet", "Build a triage plan for my horse in Silent Medic Vet", "Open my patients in Silent Medic Vet". The animal is a parameter.
+5. Routing (FieldRouter): Spotlight activities, intents and reminder taps are delivered to the app through AppDelegate and a notification-center delegate.
+6. Haptics (FieldHapticsPlugin): Taptic feedback on selections, plan building, saves and reminders.
+7. New design: bottom tab bar (Reference, Conditions, Triage, Patients), evergreen / sage / copper colours, rounded type, new paw-and-cross icon and launch screen.
+
+HOW TO TEST
+- Launch: the knowledge base is decompressed and its SHA-256 integrity is checked; the opening screen then fades.
+- Reference: pick Dog, search "ibuprofen", open the card ("Dog: do not use"). Switch to Veterinarian (top right) and pick Cattle to see withdrawal times.
+- Conditions tab: open Glaucoma.
+- Triage tab: tap Eye, Today, then Build plan.
+- Patients tab: New patient > name "Bella", species Dog > Save. Tap Recheck reminder > In 4 hours (or pick a time a few minutes ahead) > Set reminder; allow notifications. Lock the phone; when the reminder arrives, tap it and the app opens at Bella. Add observation > Add to log.
+- Spotlight: swipe down on the Home Screen and type "carprofen" or "glaucoma"; tap the Silent Medic Vet result.
+- Siri / Shortcuts (iOS 17+): say "Look up a drug for my horse in Silent Medic Vet", or open the Shortcuts app > Silent Medic Vet.
+
+CONTENT AND SAFETY
+Doses are shown only as the label or published formulary states them, in Veterinarian view; nothing is calculated from an animal's weight (Guideline 1.4.2). Unapproved research peptides are not included in the App Store build. Every card carries red-flag signs and the advice to contact a veterinarian; the app states that it is not a diagnosis.
+
+ORIGINALITY
+Silent Medic Vet is not built from a template or app generator. Its knowledge base (89 entries, 12 condition cards, 13 species, rule-based triage plans) and its native Swift code were written for this app. It shares no code with other apps beyond Apple's frameworks and the open-source Capacitor runtime that hosts the app's interface.
+
+PRIVACY
+No account, no ads, no analytics, no tracking, no network requests. Patient profiles and reminders stay on the device. Privacy manifest included (UserDefaults, reason CA92.1).
+
+Publisher: HAKOYA LLC.

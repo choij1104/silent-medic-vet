@@ -1,0 +1,32 @@
+Silent Medic Vet is an offline veterinary reference for animal owners and veterinarians. Pick the animal, then look up a drug, supplement or home medicine, read a condition card, or build a triage plan. Everything runs on your iPhone. The app makes no network connections and collects no data.
+
+WHICH ANIMAL?
+13 species in one place: dog, cat, rabbit, horse, cattle, sheep, goat, deer, pig, chicken, duck, turkey and peafowl. Every card is rated for the animal you picked: acceptable, caution / extra-label, or do not use. Food-producing species show withdrawal times.
+
+REFERENCE
+89 entries across seven treatment groups: OTC drugs, prescription drugs, approved peptides and biologics, nutraceuticals, herbal and TCVM, manual and physical therapy, and human medicines you may already have at home. Each entry shows what it is, an evidence grade (A strong in-species data to X evidence of harm), species notes, regulatory status, references and the signs that mean you should call a veterinarian now.
+
+CONDITIONS
+Disease cards with a triage band (Emergency, see a veterinarian within 24 hours, book a visit, home care), warning signs, breeds at risk, what to do, what not to do, and the human medicines at home that matter. Search by condition, sign or breed.
+
+TRIAGE PLAN
+Choose the problem, when it started and what you have on hand. Silent Medic Vet lists the red flags first, then what to do now, what not to do, relevant products and the possible causes, most urgent first. Copy the plan to share with your clinic.
+
+PATIENTS
+Keep a profile for each animal you look after: name or tag, species, a weight you noted, notes and a dated observation log. "Chart this animal" sets the species across the app. Profiles are stored only on this iPhone. A noted weight is a record for you and your veterinarian; the app never calculates a dose from it.
+
+RECHECK REMINDERS
+Set a reminder to recheck an eye, a wound dressing or appetite. It arrives as a notification on your iPhone and opens that patient when you tap it.
+
+SIRI, SHORTCUTS AND SPOTLIGHT
+"Look up a drug for my dog in Silent Medic Vet." "Build a triage plan for my horse in Silent Medic Vet." "Open my patients in Silent Medic Vet." Search the Home Screen for a drug or condition, such as carprofen or glaucoma, to open its card directly.
+
+VETERINARIAN VIEW
+Switch to Veterinarian view for reference doses exactly as the label or published formulary states them, DVM notes, diagnostics, treatment direction, and prescribing references: VCPR, prescription and label elements, AMDUCA extra-label use, controlled substances, compounding, VFD and prescription portability (federal and Texas).
+
+Rehab & Manual Therapy view: dog and horse rehabilitation, manual therapy, holistic and supportive nutraceuticals in one filtered list.
+
+IMPORTANT
+Silent Medic Vet is a reference, not a diagnosis, and not a substitute for a licensed veterinarian. Verify doses against current labels, Plumb's and FARAD before use. Extra-label use in food animals requires a valid veterinarian-client-patient relationship and a FARAD-derived withdrawal.
+
+Silent Medic Vet is published by HAKOYA LLC. Free, no ads, no account, no tracking.
