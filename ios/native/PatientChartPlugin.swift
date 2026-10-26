@@ -30,7 +30,7 @@ public class PatientChartPlugin: CAPPlugin, CAPBridgedPlugin {
         return dir.appendingPathComponent("patients.json")
     }
 
-    private func load() -> [[String: Any]] {
+    private func readAll() -> [[String: Any]] {
         guard let url = fileURL, let data = try? Data(contentsOf: url),
               let arr = (try? JSONSerialization.jsonObject(with: data)) as? [[String: Any]] else { return [] }
         return arr
@@ -44,7 +44,7 @@ public class PatientChartPlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func list(_ call: CAPPluginCall) {
         queue.async {
-            call.resolve(["patients": self.load()])
+            call.resolve(["patients": self.readAll()])
         }
     }
 
@@ -57,7 +57,7 @@ public class PatientChartPlugin: CAPPlugin, CAPBridgedPlugin {
         }
         let record: [String: Any] = patient
         queue.async {
-            var all = self.load()
+            var all = self.readAll()
             if let i = all.firstIndex(where: { ($0["id"] as? String) == id }) {
                 all[i] = record
             } else {
@@ -82,7 +82,7 @@ public class PatientChartPlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
         queue.async {
-            let all = self.load().filter { ($0["id"] as? String) != id }
+            let all = self.readAll().filter { ($0["id"] as? String) != id }
             do {
                 try self.write(all)
                 call.resolve(["patients": all])

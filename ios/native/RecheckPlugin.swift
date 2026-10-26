@@ -83,7 +83,7 @@ public class RecheckPlugin: CAPPlugin, CAPBridgedPlugin {
     @objc func pending(_ call: CAPPluginCall) {
         let prefix = self.prefix
         UNUserNotificationCenter.current().getPendingNotificationRequests { reqs in
-            let list: [[String: Any]] = reqs.filter { $0.identifier.hasPrefix(prefix) }.map { r in
+            let list: [[String: Any]] = reqs.filter { $0.identifier.hasPrefix(prefix) }.map { r -> [String: Any] in
                 let at = (r.content.userInfo["at"] as? Double)
                     ?? ((r.trigger as? UNCalendarNotificationTrigger)?.nextTriggerDate()?.timeIntervalSince1970 ?? 0) * 1000
                 return [
