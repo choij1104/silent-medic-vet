@@ -12,7 +12,7 @@ jobs:
     timeout-minutes: 60
     env:
       BUNDLE_ID: com.hakoya.silentmedicvet
-      DEMO_SECONDS: "62"
+      DEMO_SECONDS: "80"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

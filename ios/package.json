@@ -1,11 +1,12 @@
 {
   "name": "silent-medic-vet-ios",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "App Store build of SILENT MEDIC VET, wrapped with Capacitor.",
   "scripts": {
     "build:www": "python3 scripts/build-store.py",
-    "sync": "npm run build:www && npx cap sync ios"
+    "sync": "npm run build:www && npx cap sync ios",
+    "preflight": "node qa/preflight.mjs"
   },
   "dependencies": {
     "@capacitor/core": "^7.0.0",

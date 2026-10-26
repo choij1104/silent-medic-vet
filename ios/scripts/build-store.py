@@ -15,6 +15,10 @@ The App Store build differs from the web build in four ways:
      returns nothing, so every dose is shown only as its reference source states it.
   3. No "Prototype" or "pilot" wording and no PWA install instructions.
   4. Text that pointed to the Tier 3C cards is reworded.
+  5. The iPhone layer: ios/web/smv-ios.css (the app's own visual identity and bottom tab bar) and
+     ios/web/smv-ios.js (Patients tab, recheck reminders, Spotlight, Siri / Shortcuts routes,
+     haptics; it talks only to the app's native plugins in ios/native). @capacitor/core's browser
+     build is shipped as capacitor.js so Capacitor.registerPlugin() exists for those plugins.
 
 The knowledge base is re-encoded exactly as build.py does it (gzip + base64, SHA-256 of the JSON
 text), so the app's integrity check passes. Every text replacement must match exactly once.
@@ -89,6 +93,23 @@ t = sub1("+' · pilot: eye';", ";", t, "conditions pilot label")
 t = sub1('<meta charset="utf-8">', '<meta charset="utf-8">\n<meta name="smv-build" content="store">',
          t, "charset meta")
 
+# --- iPhone layer -------------------------------------------------------------------
+WEB = os.path.join(IOS, "web")
+css = open(os.path.join(WEB, "smv-ios.css"), encoding="utf-8").read()
+js = open(os.path.join(WEB, "smv-ios.js"), encoding="utf-8").read()
+for bad in ("fetch(", "XMLHttpRequest", "http://", "https://", "WebSocket", "sendBeacon", "import("):
+    if bad in js:
+        die(f"'{bad}' in smv-ios.js: no network use is allowed")
+if re.search(r"url\(\s*['\"]?(https?:|//)", css) or "@import" in css:
+    die("smv-ios.css loads an external resource")
+if "</script" in js or "</style" in css:
+    die("iPhone layer would close its own tag")
+t = sub1("</head>", "<style id=\"smv-ios\">\n" + css + "\n</style>\n</head>", t, "head end")
+t = sub1("</body>", "<script id=\"smv-ios-js\">\n" + js + "\n</script>\n</body>", t, "body end")
+i = t.find("<script")
+t = t[:i] + '<script src="capacitor.js"></script>\n' + t[i:]
+t = sub1('<meta name="theme-color" content="#0d47a1">', '<meta name="theme-color" content="#18392b">', t, "theme colour")
+
 # --- checks -------------------------------------------------------------------------
 for bad in ("Prototype", "Tier 3C", "BPC-157", "TB-500", 'id="installBtn"', 'type="number" id="weight"'):
     if bad in t:
@@ -105,5 +126,9 @@ os.makedirs(OUT)
 open(os.path.join(OUT, "index.html"), "w", encoding="utf-8").write(t)
 for f in ("icon-192.png", "icon-512.png", "manifest.webmanifest"):
     shutil.copy(os.path.join(ROOT, f), os.path.join(OUT, f))
+cap = os.path.join(IOS, "node_modules", "@capacitor", "core", "dist", "capacitor.js")
+if not os.path.isfile(cap):
+    die("@capacitor/core dist/capacitor.js missing: run npm ci in ios/ first")
+shutil.copy(cap, os.path.join(OUT, "capacitor.js"))
 print(f"build-store: {len(kb)} entries (removed {len(removed)} Tier 3C: {', '.join(removed)}) · "
       f"{len(cond)} conditions · sha {new_sha[:16]} · {len(t)} bytes → {OUT}")

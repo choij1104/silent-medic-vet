@@ -8,17 +8,25 @@ place, and the script fails loudly if the template has changed shape.
   1. App icon      ios/icons/icon-1024.png (drawn by scripts/make-icon.py) -> AppIcon set, alpha channel removed (App Store rule).
                    The template otherwise ships Capacitor's own logo as the app icon.
   2. Launch screen Template splash (Capacitor logo) replaced with the app icon centred on the
-                   app's blue, which is also the background of the opening screen.
+                   app's evergreen, which is also the background of the opening screen.
   3. Info.plist    ITSAppUsesNonExemptEncryption = NO (no own encryption; skips the export
                    question on every upload). iPad orientation keys removed with the iPad target.
-                   Light status bar text, for the blue header.
+                   Light status bar text, for the evergreen header.
   4. Devices       iPhone only (TARGETED_DEVICE_FAMILY = 1). An iPad target would require 13-inch
                    iPad screenshots and an iPad layout review.
   5. Privacy       PrivacyInfo.xcprivacy added to the app target: no tracking, no data collected,
-                   no required-reason APIs. Capacitor's frameworks carry their own manifests.
+                   one required-reason API (UserDefaults, CA92.1: the app's own pending route and
+                   Spotlight stamp). Capacitor's frameworks carry their own manifests.
   6. iOS 15.0      Minimum iOS raised from Capacitor's 14.0 in the app target and the Podfile
                    (ITMS-90068: uploads must target iOS 15.0 or later from April 2027).
                    Run this script before `npx cap sync ios` so pod install picks up the Podfile.
+  7. Native code   ios/native/*.swift copied into the app target with fixed project IDs:
+                   FieldRouter (Spotlight / Siri / reminder routes), KnowledgeIndexPlugin (CoreSpotlight),
+                   PatientChartPlugin (on-device animal profiles), RecheckPlugin (local reminders),
+                   FieldHapticsPlugin (Taptic feedback), VetShortcuts (App Intents + App Shortcuts),
+                   VetBridgeViewController (registers the plugins). Main.storyboard switched to
+                   VetBridgeViewController; AppDelegate hands Spotlight activities and reminder taps
+                   to FieldRouter.
 """
 import os, plistlib, re, sys
 from PIL import Image
@@ -27,7 +35,7 @@ IOS = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # .../ios
 ROOT = os.path.dirname(IOS)
 APP = os.path.join(IOS, "ios", "App", "App")
 PBX = os.path.join(IOS, "ios", "App", "App.xcodeproj", "project.pbxproj")
-SPLASH_BG = (13, 71, 161)          # #0d47a1, the icon field and the header colour
+SPLASH_BG = (24, 57, 43)           # #18392b evergreen, the icon field and the header colour
 
 def die(msg):
     sys.exit(f"native-setup: {msg}")
@@ -94,7 +102,10 @@ manifest = {
     "NSPrivacyTracking": False,
     "NSPrivacyTrackingDomains": [],
     "NSPrivacyCollectedDataTypes": [],
-    "NSPrivacyAccessedAPITypes": [],
+    "NSPrivacyAccessedAPITypes": [
+        {"NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+         "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]},
+    ],
 }
 with open(os.path.join(APP, "PrivacyInfo.xcprivacy"), "wb") as fh:
     plistlib.dump(manifest, fh)
@@ -120,6 +131,61 @@ if FILE_ID not in pbx:
     for pos, text in edits:
         pbx = pbx[:pos] + text + pbx[pos:]
 
+# 7. Native Swift sources --------------------------------------------------------------
+import shutil
+NATIVE = os.path.join(IOS, "native")
+SWIFT = [("FieldRouter.swift",             "5A11E0D1C0DE0000000000F1", "5A11E0D1C0DE0000000000F2"),
+         ("KnowledgeIndexPlugin.swift",    "5A11E0D1C0DE0000000000F3", "5A11E0D1C0DE0000000000F4"),
+         ("PatientChartPlugin.swift",      "5A11E0D1C0DE0000000000F5", "5A11E0D1C0DE0000000000F6"),
+         ("RecheckPlugin.swift",           "5A11E0D1C0DE0000000000F7", "5A11E0D1C0DE0000000000F8"),
+         ("FieldHapticsPlugin.swift",      "5A11E0D1C0DE0000000000F9", "5A11E0D1C0DE0000000000FA"),
+         ("VetShortcuts.swift",            "5A11E0D1C0DE0000000000FB", "5A11E0D1C0DE0000000000FC"),
+         ("VetBridgeViewController.swift", "5A11E0D1C0DE0000000000FD", "5A11E0D1C0DE0000000000FE")]
+found = sorted(f for f in os.listdir(NATIVE) if f.endswith(".swift"))
+if found != sorted(n for n, _, _ in SWIFT):
+    die(f"ios/native has {found}; update the SWIFT list in native-setup.py")
+for name, fid, bid in SWIFT:
+    shutil.copy(os.path.join(NATIVE, name), os.path.join(APP, name))
+    if fid in pbx:
+        continue
+    ad_ref = re.search(r"^\t\t(\w{24}) /\* AppDelegate\.swift \*/ = \{isa = PBXFileReference;[^\n]*\n", pbx, re.M)
+    ad_bld = re.search(r"^\t\t\w{24} /\* AppDelegate\.swift in Sources \*/ = \{isa = PBXBuildFile;[^\n]*\n", pbx, re.M)
+    src_phase = re.search(r"isa = PBXSourcesBuildPhase;.*?files = \(\n", pbx, re.S)
+    if not (ad_ref and ad_bld and src_phase):
+        die("Xcode template changed: could not find AppDelegate.swift / Sources entries")
+    grp = re.search(rf"^(\t+){ad_ref.group(1)} /\* AppDelegate\.swift \*/,\n", pbx, re.M)
+    if not grp:
+        die("AppDelegate.swift not found in the App group")
+    edits = sorted([
+        (ad_ref.end(), f'\t\t{fid} /* {name} */ = {{isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = {name}; sourceTree = "<group>"; }};\n'),
+        (ad_bld.end(), f'\t\t{bid} /* {name} in Sources */ = {{isa = PBXBuildFile; fileRef = {fid} /* {name} */; }};\n'),
+        (grp.end(), f"{grp.group(1)}{fid} /* {name} */,\n"),
+        (src_phase.end(), f"\t\t\t\t{bid} /* {name} in Sources */,\n"),
+    ], key=lambda e: e[0], reverse=True)
+    for pos, text in edits:
+        pbx = pbx[:pos] + text + pbx[pos:]
+
+sb_path = os.path.join(APP, "Base.lproj", "Main.storyboard")
+sb = open(sb_path, encoding="utf-8").read()
+if 'customClass="VetBridgeViewController"' not in sb:
+    old = 'customClass="CAPBridgeViewController" customModule="Capacitor"'
+    if sb.count(old) != 1:
+        die("Main.storyboard: CAPBridgeViewController not found")
+    sb = sb.replace(old, 'customClass="VetBridgeViewController" customModule="App" customModuleProvider="target"')
+    open(sb_path, "w", encoding="utf-8").write(sb)
+
+ad_path = os.path.join(APP, "AppDelegate.swift")
+ad = open(ad_path, encoding="utf-8").read()
+if "FieldRouter.shared.install()" not in ad:
+    launch = re.search(r"(didFinishLaunchingWithOptions launchOptions: [^\n]*\{\n)", ad)
+    cont = re.search(r"\n(\s*)return ApplicationDelegateProxy\.shared\.application\(application, continue: userActivity", ad)
+    if not (launch and cont):
+        die("AppDelegate.swift template changed: launch / continue userActivity not found")
+    ad = (ad[:cont.start()] + f"\n{cont.group(1)}if FieldRouter.shared.accept(userActivity) {{ return true }}" + ad[cont.start():])
+    launch = re.search(r"(didFinishLaunchingWithOptions launchOptions: [^\n]*\{\n)", ad)
+    ad = ad[:launch.end()] + "        FieldRouter.shared.install()\n" + ad[launch.end():]
+    open(ad_path, "w", encoding="utf-8").write(ad)
+
 open(PBX, "w", encoding="utf-8").write(pbx)
 
 # Checks ---------------------------------------------------------------------------------
@@ -128,4 +194,11 @@ assert pbx.count(FILE_ID) == 3 and pbx.count(BUILD_ID) == 2, "PrivacyInfo not wi
 assert '"1,2"' not in pbx
 assert re.findall(r"IPHONEOS_DEPLOYMENT_TARGET = ([0-9.]+);", pbx) and set(re.findall(r"IPHONEOS_DEPLOYMENT_TARGET = ([0-9.]+);", pbx)) == {MIN_IOS}
 assert Image.open(os.path.join(icon_dir, names[0])).mode == "RGB"
-print(f"native-setup: icon, {count} splash images, Info.plist, iPhone-only, PrivacyInfo.xcprivacy, iOS {MIN_IOS} done")
+for name, fid, bid in SWIFT:
+    assert pbx.count(fid) == 3 and pbx.count(bid) == 2, f"{name} not wired into the project"
+    assert os.path.isfile(os.path.join(APP, name)), f"{name} not copied"
+ad = open(ad_path, encoding="utf-8").read()
+assert ad.count("FieldRouter.shared.install()") == 1 and ad.count("FieldRouter.shared.accept(userActivity)") == 1, "AppDelegate not patched"
+assert 'customClass="VetBridgeViewController"' in open(sb_path, encoding="utf-8").read()
+print(f"native-setup: icon, {count} splash images, Info.plist, iPhone-only, PrivacyInfo.xcprivacy, iOS {MIN_IOS}, "
+      f"{len(SWIFT)} native sources (Spotlight, patient chart, recheck reminders, haptics, App Shortcuts) done")
