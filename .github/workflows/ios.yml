@@ -123,7 +123,13 @@ jobs:
             MARKETING_VERSION="$MARKETING_VERSION" \
             CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
             | tee "$RUNNER_TEMP/archive.log" | grep -E '^(\*\*|error:|warning: .*sign)' || true
-          test -d "$RUNNER_TEMP/SilentMedicVet.xcarchive" || { tail -80 "$RUNNER_TEMP/archive.log"; exit 1; }
+          if [ ! -d "$RUNNER_TEMP/SilentMedicVet.xcarchive" ]; then
+            tail -80 "$RUNNER_TEMP/archive.log"
+            # Surface compiler errors as annotations (readable through the API without the log).
+            grep -E 'error:|\*\* ARCHIVE FAILED' "$RUNNER_TEMP/archive.log" | sed 's/^.*\/App\/App\///' | sort -u | head -25 \
+              | while IFS= read -r l; do echo "::error::${l:0:900}"; done
+            exit 1
+          fi
           /usr/libexec/PlistBuddy -c 'Print :ApplicationProperties' "$RUNNER_TEMP/SilentMedicVet.xcarchive/Info.plist"
 
       - name: Sign for distribution and upload to App Store Connect
